@@ -67,36 +67,82 @@ while(my $line = <EXAC>){  ## read single line from the file
             my $i = 0;
             
             ## Loop through all alternate alleles
-            while (exists $alt[$i]){
-                ## Above we made the ref/var alleles 0 for indels when creating the hash keys
-                ## Loop through all alternative alleles for a given variant
-                if(length($alt[$i])>1) {
-    ## TO DO: Handle 2bp reference alleles - for example chr 1:2234874 CG  C,CGG,TG 
-                    ## For alternate alleles that are more than 1 base, replace the reference allele with 0 (insertions)
-                    $exac = join("\t",$vars[0],$vars[1],$ins,$alt[$i]);
-                } elsif(length($vars[3])>1) {
-                    ## For reference alleles that are more than 1 base, replace the alternate allele with 0 (deletion)
-                    $exac = join("\t",$vars[0],$vars[1],$vars[3],$ins);
-                } else {
-                    $exac = join("\t",$vars[0],$vars[1],$vars[3],$alt[$i]);
-                }
-                
-                ## Use the new ExAc string to see if it matches a key in the variant hash
-                if($variants{$exac}) {
-                    my @info = split(";",$vars[7]);
-                    foreach my $l (@info) {
-                        if ($l =~ /^AF/) {
-                            ## Pull the allele frequency data (AF section)
-#                            print "$l\n";
-                            ## Like alternate alleles, allele frequences are separated by a , so pull the correct AF for the alt allele
-                            $l =~ s/AF=//;
-                            my @af = split(",",$l);
-
-                            ## print the original test input line and the ExAc matched chr, ref, alt and allele frequency
-                            print OUT "$variants{$exac}\t$exac\t$af[$i]\n";
+            while(exists $alt[$i]){
+                ## Initialize new ref/alt variables
+                my $new_ref = $vars[3];
+                my $new_var = $alt[$i];
+                if(length($new_ref)>1 || length($new_var)>1) {
+                    while(substr($new_ref,(length($new_ref)-1)) eq substr($new_var,(length($new_var)-1))) {
+                        chop($new_ref);
+                        chop($new_var);
+                        my $a = substr($new_ref,(length($new_ref)-1));
+                        my $b = substr($new_var,(length($new_var)-1));
+#                        print "$vars[3]\t$alt[$i]\t$a\t$b\t$new_ref\t$new_var\n";
+                        print "$vars[3]\t$alt[$i]\tfirst:$new_ref\t$new_var\n";
+                    }
+                    while(substr($new_ref,0,1) eq substr($new_var,0,1)) {
+                        if(length($new_ref)==1 && length($new_var)>1) {
+                            $new_ref = 0;
+                            $new_var = substr($new_var,1,length($new_var));
+                        } elsif(length($new_ref)>1 && length($new_var)==1) {
+                            $new_ref = substr($new_ref,1,length($new_ref));   
+                            $new_var = 0; 
+                        } elsif(length($new_ref)>1 && length($new_var)>1) {
+                            $new_ref = substr($new_ref,1,length($new_ref));
+                            $new_var = substr($new_var,1,length($new_var));
                         }
-                    }                  
-                } 
+                        print "$vars[3]\t$alt[$i]\tsecond:$new_ref\t$new_var\n";
+                    }
+#                    print "$vars[3]\t$alt[$i]\t$a\t$b\t$new_ref\t$new_var\n";
+
+
+
+
+#                    if(length($new_ref)==1 && length($new_var)>1) {
+#                        $new_ref = 0;
+#                        my $c = substr($new_var,1,length($new_var));
+#                        print "$vars[3]\t$alt[$i]\t$new_ref\t$c\n";
+#                    }
+                }
+
+#                if(length($vars[3])>1 || length($alt[$i])>1) {
+#                    if(substr($vars[3],(length($vars[3])-1)) eq substr($alt[$i],(length($alt[$i])-1))) {
+#                        chop($
+#                        my $a = substr($vars[3],(length($vars[3])-1));
+#                        my $b = substr($alt[$i],(length($alt[$i])-1));
+#                        print "$vars[3]\t$alt[$i]\t$a\t$b\n";
+#                    }
+#                }
+#                ## Above we made the ref/var alleles 0 for indels when creating the hash keys
+#                ## Loop through all alternative alleles for a given variant
+#                if(length($alt[$i])>1) {
+#    ## TO DO: Handle 2bp reference alleles - for example chr 1:2234874 CG  C,CGG,TG 
+#                    ## For alternate alleles that are more than 1 base, replace the reference allele with 0 (insertions)
+#                    $exac = join("\t",$vars[0],$vars[1],$ins,$alt[$i]);
+#                } elsif(length($vars[3])>1) {
+#                    ## For reference alleles that are more than 1 base, replace the alternate allele with 0 (deletion)
+#                    $exac = join("\t",$vars[0],$vars[1],$vars[3],$ins);
+#                } else {
+#                    $exac = join("\t",$vars[0],$vars[1],$vars[3],$alt[$i]);
+#                }
+#                
+#                ## Use the new ExAc string to see if it matches a key in the variant hash
+#                if($variants{$exac}) {
+#                    my @info = split(";",$vars[7]);
+#                    foreach my $l (@info) {
+#                        if ($l =~ /^AF/) {
+#                            ## Pull the allele frequency data (AF section)
+##                            print "$l\n";
+#                            ## Like alternate alleles, allele frequences are separated by a , so pull the correct AF for the alt allele
+#                            $l =~ s/AF=//;
+#                            my @af = split(",",$l);
+#
+#                            ## print the original test input line and the ExAc matched chr, ref, alt and allele frequency
+#                            print OUT "$variants{$exac}\t$exac\t$af[$i]\n";
+#                        }
+#                    }                  
+#                } 
+
                 $i++;        
             } 
         } else {
