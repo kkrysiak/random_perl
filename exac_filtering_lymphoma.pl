@@ -85,13 +85,7 @@ while(my $line = <EXAC>){  ## read single line from the file
                 if($variants{$exac}) {
                     my @info = split(";",$vars[7]);
                     foreach my $l (@info) {
-                        if($l =~ /^CSQ/) {
-                            ## Split the CSQ info section on |
-                            ## Interesting sections: Existing_variation|EA_MAF|CLIN_SIG|SYMBOL = columns 11|13|23|25 
-#                            print "$l\n"; 
-#                            my @csq = split(/\|/, $l);                            
-#                            print "$csq[10]\t$csq[12]\t$csq[22]\t$csq[24]\n$csq[55]\n\n";
-                        } elsif ($l =~ /^AF/) {
+                        if ($l =~ /^AF/) {
                             ## Pull the allele frequency data (AF section)
 #                            print "$l\n";
                             ## Like alternate alleles, allele frequences are separated by a , so pull the correct AF for the alt allele
