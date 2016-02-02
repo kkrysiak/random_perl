@@ -15,10 +15,17 @@ open(OUT2, ">/gscmnt/gc2547/mardiswilsonlab/kkrysiak/exac_release2/input_variant
 
 ## Create hash to hold final cleaned up test variants
 my %variants = ();
+## Pull header from test variant file
+my $header = "";
 
 #### Read in test variants line by line, clean them up and assign them to a hash
 while(my $line = <VARIANTS>) {
     chomp($line);
+    ## Print the first line of the file + 5 ExAc column headings to output file
+    if($header eq "") {
+        $header = join("\t",$line,"exac_chr","exac_start","exac_ref","exac_alt","exac_AF");
+        print OUT "$header\n";
+    }
     ## Check that the first character is a valid chromosome, otherwise print to the removed output file
     if($line =~ /^([0-9]|X|Y|M)/){
         ## Create an array with the different columns of the line
