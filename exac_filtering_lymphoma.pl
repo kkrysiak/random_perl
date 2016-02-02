@@ -7,6 +7,7 @@ use warnings;
 open(VARIANTS, "</gscmnt/gc2547/mardiswilsonlab/kkrysiak/lymphoma/variant_files/All_Variants.tsv") or die "Variant file not found";
 ## gz VCF file containing all ExAc variants
 open(EXAC, "gunzip -c /gscmnt/gc2547/mardiswilsonlab/kkrysiak/exac_release2/ExAC.r0.2.sites.vep.vcf.gz | ") or die "Can't open ExAc file";
+#open(EXAC, "/gscmnt/gc2547/mardiswilsonlab/kkrysiak/exac_release2/test.vcf") or die "Can't open test file";
 
 #### Create output files
 open(OUT, ">/gscmnt/gc2547/mardiswilsonlab/kkrysiak/exac_release2/matched_variants_output.tsv");
@@ -44,7 +45,7 @@ while(my $line = <VARIANTS>) {
     }
 }
 
-print scalar keys %variants;
+#print scalar keys %variants;
 #print "$_ $variants{$_}\n" for keys %variants;
 
 ## Iterate through the ExAc VCF file line by line
@@ -68,9 +69,10 @@ while(my $line = <EXAC>){  ## read single line from the file
             
             ## Loop through all alternate alleles
             while(exists $alt[$i]){
-                ## Initialize new ref/alt variables
+                ## Initialize new ref/alt and start variables
                 my $new_ref = $vars[3];
                 my $new_var = $alt[$i];
+                my $pos = $vars[1];
                 if(length($new_ref)>1 || length($new_var)>1) {
                     while(substr($new_ref,(length($new_ref)-1)) eq substr($new_var,(length($new_var)-1))) {
                         chop($new_ref);
@@ -78,20 +80,23 @@ while(my $line = <EXAC>){  ## read single line from the file
                         my $a = substr($new_ref,(length($new_ref)-1));
                         my $b = substr($new_var,(length($new_var)-1));
 #                        print "$vars[3]\t$alt[$i]\t$a\t$b\t$new_ref\t$new_var\n";
-                        print "$vars[3]\t$alt[$i]\tfirst:$new_ref\t$new_var\n";
+                        print "$vars[3]\t$alt[$i]\t$vars[1]\tfirst:$new_ref\t$new_var\t$pos\n";
                     }
                     while(substr($new_ref,0,1) eq substr($new_var,0,1)) {
                         if(length($new_ref)==1 && length($new_var)>1) {
                             $new_ref = 0;
+                            $pos = $pos + 1;
                             $new_var = substr($new_var,1,length($new_var));
                         } elsif(length($new_ref)>1 && length($new_var)==1) {
-                            $new_ref = substr($new_ref,1,length($new_ref));   
+                            $new_ref = substr($new_ref,1,length($new_ref));
+                            $pos = $pos + 1;   
                             $new_var = 0; 
                         } elsif(length($new_ref)>1 && length($new_var)>1) {
                             $new_ref = substr($new_ref,1,length($new_ref));
+                            $pos = $pos + 1;
                             $new_var = substr($new_var,1,length($new_var));
                         }
-                        print "$vars[3]\t$alt[$i]\tsecond:$new_ref\t$new_var\n";
+                        print "$vars[3]\t$alt[$i]\t$vars[1]\tsecond:$new_ref\t$new_var\t$pos\n";
                     }
 #                    print "$vars[3]\t$alt[$i]\t$a\t$b\t$new_ref\t$new_var\n";
 
