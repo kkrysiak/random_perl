@@ -20,11 +20,11 @@ my %variants = ();
 while(my $line = <VARIANTS>) {
     chomp($line);
     ## Check that the first character is a valid chromosome, otherwise print to the removed output file
-    if($line =~ /^([0-9]|X|Y)/){
+    if($line =~ /^([0-9]|X|Y|M)/){
         ## Create an array with the different columns of the line
         my @vars = split("\t", $line);
         ## Check that the chromosome, start, reference base, variant base are formatted as expected
-        if($vars[0] =~ /^(\d*|X|Y)$/ && $vars[1] =~ /^\d+$/ && $vars[3] =~ /(A|C|T|G|-|0)+/ && $vars[4] =~ /(A|C|T|G|-|0)+/) {
+        if($vars[0] =~ /^(\d*|X|Y|MT)$/ && $vars[1] =~ /^\d+$/ && $vars[3] =~ /(A|C|T|G|-|0)+/ && $vars[4] =~ /(A|C|T|G|-|0)+/) {
             ## Change - to 0 to designate indels
             if($vars[3] =~ /-/){
                 $vars[3] = 0;
@@ -60,7 +60,7 @@ while(my $line = <EXAC>){  ## read single line from the file
         my @vars = split("\t", $line);
         
         ## Check that the chromosome and start site are formatted as expected
-        if($vars[0] =~ /^(\d*|X|Y)$/ && $vars[1] =~ /^\d+$/ && $vars[3] =~ /(A|C|T|G)+/ && $vars[4] =~ /(A|C|T|G)+/) {
+        if($vars[0] =~ /^(\d*|X|Y|MT)$/ && $vars[1] =~ /^\d+$/ && $vars[3] =~ /(A|C|T|G)+/ && $vars[4] =~ /(A|C|T|G)+/) {
             ## Split the alt allele into a new array (some have more than 1 alternate allele)
             my @alt = split(",", $vars[4]);
             ## Initialize the final ExAc variable and a counter
@@ -104,11 +104,8 @@ while(my $line = <EXAC>){  ## read single line from the file
                             $new_var = substr($new_var,1,length($new_var));
                             $pos = $pos + 1;
                         }
-                        ## Increase the starting base position
-#                        print "$vars[3]\t$alt[$i]\t$vars[1]\tsecond:$new_ref\t$new_var\t$pos\n";
                     }
                     $exac = join("\t",$vars[0],$pos,$new_ref,$new_var);
-#                    print "$vars[3]\t$alt[$i]\t$vars[1]\t\t$exac\n";
 
                     ## Determine if there is another way to represent the variant
                     ## Remove matching prefixes and iterate coordinate start position as necessary (first this time)
@@ -173,7 +170,6 @@ while(my $line = <EXAC>){  ## read single line from the file
                     }
                 ## Use alternate exac string to query for the test variant                  
                 } elsif($exac2 ne "") {
-                    print "$exac\n$exac2\n";
                     if($variants{$exac2}) {
                         my @info2 = split(";",$vars[7]);
                         foreach my $l2 (@info2) {
