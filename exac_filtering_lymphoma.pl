@@ -10,8 +10,7 @@ open(EXAC, "gunzip -c /gscmnt/gc2547/mardiswilsonlab/kkrysiak/exac_release2/ExAC
 #open(EXAC, "/gscmnt/gc2547/mardiswilsonlab/kkrysiak/exac_release2/test.vcf") or die "Can't open test file";
 
 #### Create output files
-open(OUT, ">/gscmnt/gc2547/mardiswilsonlab/kkrysiak/exac_release2/matched_variants_output.tsv");
-open(OUT2, ">/gscmnt/gc2547/mardiswilsonlab/kkrysiak/exac_release2/input_variants_removed.tsv");
+open(OUT, ">/gscmnt/gc2547/mardiswilsonlab/kkrysiak/lymphoma/variant_files/exac_matched_variants_output.tsv");
 
 ## Create hash to hold final cleaned up test variants
 my %variants = ();
@@ -43,17 +42,18 @@ while(my $line = <VARIANTS>) {
             ## Assign the new string as a key in a hash
             $variants{$var_string} = $line;           
         } else {
-            ## Output skipped lines to a separate file
-            print OUT2 "$line\n";
+            unless($line =~ /^chr/) {
+                ## Print skipped lines
+                print "Variant formatting problem:\n$line\n";
+            }
         }
     } else {
-        ## Output skipped lines to a separate file
-        print OUT2 "$line\n";
+        unless($line =~ /^chr/) {
+            ## Print skipped lines
+            print "Variant formatting problem:\n$line\n";
+        }
     }
 }
-
-#print scalar keys %variants;
-#print "$_ $variants{$_}\n" for keys %variants;
 
 ## Iterate through the ExAc VCF file line by line
 while(my $line = <EXAC>){  ## read single line from the file
@@ -205,4 +205,3 @@ while(my $line = <EXAC>){  ## read single line from the file
 close VARIANTS;
 close EXAC;
 close OUT;
-close OUT2;

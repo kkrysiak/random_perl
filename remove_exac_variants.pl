@@ -4,11 +4,11 @@ use warnings;
 
 #### Open relavent input files
 ## Our variant file
-#open(VARIANTS, "</gscmnt/gc2547/mardiswilsonlab/kkrysiak/lymphoma/variant_files/All_Variants.lym_pon.tsv") or die "Variant file not found";
-open(VARIANTS, "</gscmnt/gc2547/mardiswilsonlab/kkrysiak/lymphoma/variant_files/lym_normal_filter/All_Variants.lym_pon.tsv") or die "Variant file not found";
+open(VARIANTS, "</gscmnt/gc2547/mardiswilsonlab/kkrysiak/lymphoma/variant_files/All_Variants.lym_pon.tsv") or die "Variant file not found";
+#open(VARIANTS, "</gscmnt/gc2547/mardiswilsonlab/kkrysiak/lymphoma/variant_files/lym_normal_filter/All_Variants.lym_pon.tsv") or die "Variant file not found";
 ## Open Exac-annotated variants file
-#open(ANNOT, "</gscmnt/gc2547/mardiswilsonlab/kkrysiak/lymphoma/variant_files/matched_variants_output.tsv") or die "ExAc annotated file not found";
-open(ANNOT, "</gscmnt/gc2547/mardiswilsonlab/kkrysiak/exac_release2/matched_variants_output.tsv") or die "ExAc annotated file not found";
+open(ANNOT, "</gscmnt/gc2547/mardiswilsonlab/kkrysiak/lymphoma/variant_files/exac_matched_variants_output.tsv") or die "ExAc annotated file not found";
+#open(ANNOT, "</gscmnt/gc2547/mardiswilsonlab/kkrysiak/exac_release2/matched_variants_output.tsv") or die "ExAc annotated file not found";
 
 #### Create output files
 open(KEEP, ">/gscmnt/gc2547/mardiswilsonlab/kkrysiak/lymphoma/variant_files/All_Variants.lym_pon.exac.tsv");
