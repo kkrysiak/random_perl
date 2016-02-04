@@ -3,19 +3,19 @@ use strict;
 use warnings;
 
 ## Open readcount file
-open(NORM, "/gscmnt/gc2547/mardiswilsonlab/kkrysiak/lymphoma/variant_files/lym_normal_filter/lym_normal_indel_readcounts.tsv") or die "Input file not found";
+open(NORM, "/gscmnt/gc2547/mardiswilsonlab/kkrysiak/lymphoma/variant_files/lym_normal_filter/lym_normal_readcounts.tsv") or die "Input file not found";
 #open(NORM, "</gscmnt/gc2547/mardiswilsonlab/kkrysiak/lymphoma/variant_files/lym_normal_filter/test.tsv") or die "Test file not found";
 ## Open variant file
 open(VARIANTS, "</gscmnt/gc2547/mardiswilsonlab/kkrysiak/lymphoma/variant_files/All_Variants.tsv") or die "List of called variants not found";
 
 ## Create output files
-open(OUT, ">/gscmnt/gc2547/mardiswilsonlab/kkrysiak/lymphoma/variant_files/lym_normal_filter/All_Variants.lym_pon_excluded.tsv");
-open(OUT2, ">/gscmnt/gc2547/mardiswilsonlab/kkrysiak/lymphoma/variant_files/lym_normal_filter/All_Variants.lym_pon.tsv");
+open(OUT, ">/gscmnt/gc2547/mardiswilsonlab/kkrysiak/lymphoma/variant_files/All_Variants.lym_pon_excluded.tsv");
+open(OUT2, ">/gscmnt/gc2547/mardiswilsonlab/kkrysiak/lymphoma/variant_files/All_Variants.lym_pon.tsv");
 
 ## Declare cutoffs
-my $VAF = 5; ## minimum VAF
-my $readcount = 3; ## minimum readcount
-my $recurrence = 3; ## minimum recurrence count
+my $VAF = 3;        ## minimum VAF
+my $readcount = 2;  ## minimum readcount
+my $recurrence = 5; ## minimum recurrence count
 
 ## Assign the variants being tested against to a hash
 my %list = ();
@@ -24,7 +24,7 @@ while(my $line = <VARIANTS>) {
     chomp($line);
     $row+=1;
     if($row==1){
-        print OUT "$line\n";
+        print OUT "$line\tCount\n";
         print OUT2 "$line\n";
     } else {
         ## Create an array with the different columns of the line
@@ -58,8 +58,9 @@ while(my $line2 = <NORM>) {
                     $count+=1;
                 }
             }
+            ## Print the variants to the appropriate file (exclude or not)
             if($count>=$recurrence){
-                print OUT "$list{$variant}\n";
+                print OUT "$list{$variant}\t$count\n";
             } else {
                 if($var[6] eq "NA") {
                 } else {
