@@ -4,8 +4,10 @@ use warnings;
 
 #### Open relavent input files
 ## Our variant file
+#open(VARIANTS, "</gscmnt/gc2547/mardiswilsonlab/kkrysiak/lymphoma/variant_files/All_Variants.lym_pon.tsv") or die "Variant file not found";
 open(VARIANTS, "</gscmnt/gc2547/mardiswilsonlab/kkrysiak/lymphoma/variant_files/lym_normal_filter/All_Variants.lym_pon.tsv") or die "Variant file not found";
 ## Open Exac-annotated variants file
+#open(ANNOT, "</gscmnt/gc2547/mardiswilsonlab/kkrysiak/lymphoma/variant_files/matched_variants_output.tsv") or die "ExAc annotated file not found";
 open(ANNOT, "</gscmnt/gc2547/mardiswilsonlab/kkrysiak/exac_release2/matched_variants_output.tsv") or die "ExAc annotated file not found";
 
 #### Create output files
@@ -34,7 +36,7 @@ while(my $eline = <ANNOT>) {
         if($af_value>$af_cutoff) {
             $fail{$e_string} = $eline;
         } elsif($af_value <= $af_cutoff) {
-            $pass{$e_string} = join("\t",@evars[0..34],$evars[38]);
+            $pass{$e_string} = join("\t",@evars[0..33],$evars[38]);
         } else {
             print "ExAc allele frequency not valid, check fromatting.\n";
         }
