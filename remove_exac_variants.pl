@@ -15,38 +15,29 @@ open(FAILED, ">/gscmnt/gc2547/mardiswilsonlab/kkrysiak/lymphoma/variant_files/Al
 ## Declaire the exac allele frequency cutoff to separate the file
 my $af_cutoff = 0.001;
 
-## Create a hash of the variant file
-my %filter = ();
+## Create a hashes of passed and failed variants
 my %fail = ();
 my %pass = ();
-## Pull header from the Exac annotated file
-my $exac_header = "";
-
-
-#while(my $fline = <VARIANTS>) {
-#    chomp($fline);
-#    ## Split the lines on tab
-#    my @fvars = split("\t", $fline);
-#    ## Create a key out of the chr,start,stop,ref,var and assign the line as the value in the hash
-#    my $f_string = join("\t",@fvars[0..4];
-#    $filter{$f_string} = $fline;
-#}
 
 while(my $eline = <ANNOT>) {
     chomp($eline);
-    if($exac_header eq "") {
-        print FAILED "$exac_header\n";
-    }
-    my @evars = split("\t", $eline);
-    ## Create a key out of the chr,start,stop,ref,var
-    my $e_string = join("\t",@evars[0..4]);
-    ## Assign the line as the value to the fail or pass hash based on the allele frequency cutoff used
-    if($evars[38]>$af_cutoff) {
-        $fail{$e_string} = $eline;
-    } elsif($evars[38]<=$af_cutoff) {
-        $pass{$e_string} = join("\t",$evars[0..34],$evars[38]);
+    ## If header, print it
+    if($eline =~ /^chr/) {
+        print FAILED "$eline\n";
     } else {
-        print "ExAc allele frequency not valid, check fromatting.\n";
+        my @evars = split("\t", $eline);
+        ## Create a key out of the chr,start,stop,ref,var
+        my $e_string = join("\t",@evars[0..4]);
+        ## Convert scientific notation of the allele frequency to something perl can handle
+        my $af_value = sprintf("%.8f", $evars[38]);
+        ## Assign the line as the value to the fail or pass hash based on the allele frequency cutoff used
+        if($af_value>$af_cutoff) {
+            $fail{$e_string} = $eline;
+        } elsif($af_value <= $af_cutoff) {
+            $pass{$e_string} = join("\t",@evars[0..34],$evars[38]);
+        } else {
+            print "ExAc allele frequency not valid, check fromatting.\n";
+        }
     }
 }
 
