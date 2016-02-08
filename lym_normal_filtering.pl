@@ -19,53 +19,19 @@ my $recurrence = 5; ## minimum recurrence count
 
 ## Declare cutoffs for Indels
 my $indel_VAF = 2.5;      ## minimum VAF
-my $indel_readcount = 1;  ## minimum readcount
-my $indel_recurrence = 7; ## minimum recurrence count
+my $indel_readcount = 2;  ## minimum readcount
+my $indel_recurrence = 4; ## minimum recurrence count
 
-## Assign the variants being tested against to a hash
-my %list = ();
-my %indel_list = ();
-my $row = 0;
-while(my $line = <VARIANTS>) {
-    chomp($line);
-    $row+=1;
-    if($row==1){
-        print OUT "$line\tCount\n";
-        print OUT2 "$line\n";
-    } else {
-        ## Create an array with the different columns of the line
-        my @vars = split("\t", $line);
-        ## Separate SNVs and indels
-        if($vars[5] =~ "SNP") {
-            ## Check that the chromosome, start, reference base, variant base are formatted as expected
-            if($vars[0] =~ /^(\d*|X|Y|MT)$/ && $vars[1] =~ /^\d+$/ && $vars[2] =~ /^\d+$/ && $vars[3] =~ /(A|C|T|G|-|0)+/ && $vars[4] =~ /(A|C|T|G|-|0)+/) {
-                ## Create a new string with the approved chromosome, start, reference base, variant base
-                my $var_string = join("\t",@vars[0..4]);
-                ## Assign the new string as a key in a hash
-                $list{$var_string} = $line;
-            }
-        } elsif($vars[5] =~ "INS|DEL") {
-            ## Check that the chromosome, start, reference base, variant base are formatted as expected
-            if($vars[0] =~ /^(\d*|X|Y|MT)$/ && $vars[1] =~ /^\d+$/ && $vars[2] =~ /^\d+$/ && $vars[3] =~ /(A|C|T|G|-|0)+/ && $vars[4] =~ /(A|C|T|G|-|0)+/) {
-                ## Create a new string with the approved chromosome, start, reference base, variant base
-                my $indel_var_string = join("\t",@vars[0..4]);
-                ## Assign the new string as a key in a hash
-                $indel_list{$indel_var_string} = $line;
-            }
-        } else {
-            print "Check variant file formatting, SNP/INS/DEL designation not found in column 6.\n";
-        }
-    }
-}
-    
+## Create a hashes of passed and failed variants
+my %fail = ();
+my %pass = ();
 
 ## Identify variants to be removed
-while(my $line2 = <NORM>) {
-    my @var = split("\t",$line2);
+while(my $line = <NORM>) {
+    my @var = split("\t",$line);
     ## Skip the header
     if($var[0] =~ /^chr/) {
     } else { 
-        my @var = split("\t",$line2);
         my $variant = join("\t",@var[0..4]);
         my $count = 0;
         my $indel_count = 0;
@@ -73,42 +39,63 @@ while(my $line2 = <NORM>) {
         if($var[6] eq "NA") {
             print "WARNING: Data contains NA values\n";
         } else {
-            if($list{$variant}) {
-                for(my $v=7; $v<@var; $v+=3) {
-                    if($var[$v]>=$VAF && $var[$v-1]>=$readcount) {
-                        $count+=1;
-                    }
-                }
-                ## Print the variants to the appropriate file (exclude or not)
-                if($count>=$recurrence){
-                    print OUT "$list{$variant}\t$count\n";
-                } else {
-                    if($var[6] eq "NA") {
-                    } else {
-                        print OUT2 "$list{$variant}\n";
-                    }
-                }
-            } elsif($indel_list{$variant}) {
+            if($var[3] =~ /-|0/ || $var[4] =~ /-|0/) {
                 for(my $vi=7; $vi<@var; $vi+=3) {
                     if($var[$vi]>=$indel_VAF && $var[$vi-1]>=$indel_readcount) {
                         $indel_count+=1;
                     }
                 }
-                ## Print the variants to the appropriate file (exclude or not)
                 if($indel_count>=$indel_recurrence){
-                    print OUT "$indel_list{$variant}\t$indel_count\n";
+                    $fail{$variant} = $indel_recurrence;
                 } else {
-                    if($var[6] eq "NA") {
-                    } else {
-                        print OUT2 "$indel_list{$variant}\n";
+                    $pass{$variant} = "PASSED";
+                }
+            } elsif($var[3] =~ /^(A|C|T|G)$/ && $var[4] =~ /^(A|C|T|G)$/) {
+                for(my $v=7; $v<@var; $v+=3) {
+                    if($var[$v]>=$VAF && $var[$v-1]>=$readcount) {
+                        $count+=1;
                     }
                 }
+                if($count>=$recurrence){
+                    $fail{$variant} = $recurrence;
+                } else {
+                    $pass{$variant} = "PASSED";
+                }
             } else {
-                print "Variant not found:\n$line2\n";
+                print "Variant format didn't match. Check the following is as expected:\n$variant\n";
             }
         }
     }
 }
+
+my $row = 0;
+
+while(my $line2 = <VARIANTS>) {
+    chomp($line2);
+    $row+=1;
+    if($row==1){
+        print OUT "$line2\tCount\n";
+        print OUT2 "$line2\n";
+    } else {
+        ## Create an array with the different columns of the line
+        my @vars = split("\t", $line2);
+        ## Check that the chromosome, start, reference base, variant base are formatted as expected
+        if($vars[0] =~ /^(\d*|X|Y|MT)$/ && $vars[1] =~ /^\d+$/ && $vars[2] =~ /^\d+$/ && $vars[3] =~ /(A|C|T|G|-|0)+/ && $vars[4] =~ /(A|C|T|G|-|0)+/) {
+            ## Create a new string with the approved chromosome, start, reference base, variant base
+            my $var_string = join("\t",@vars[0..4]);
+            if (defined $fail{$var_string}) {
+                print OUT "$line2\t$fail{$var_string}\n";
+            } elsif(defined $pass{$var_string}) {
+                print OUT2 "$line2\n";
+            } else {
+                print "Variant not found.\n$var_string\n";
+            }
+        } else {
+            print "$line2\nCheck variant file formatting, indel Chr/Stop/Start/Ref/Var not properly formatted\n";
+        }
+    }
+}
+
 
 ## Close files
 close NORM;
