@@ -46,7 +46,7 @@ while(my $line = <NORM>) {
                     }
                 }
                 if($indel_count>=$indel_recurrence){
-                    $fail{$variant} = $indel_recurrence;
+                    $fail{$variant} = $indel_count;
                 } else {
                     $pass{$variant} = "PASSED";
                 }
@@ -57,7 +57,7 @@ while(my $line = <NORM>) {
                     }
                 }
                 if($count>=$recurrence){
-                    $fail{$variant} = $recurrence;
+                    $fail{$variant} = $count;
                 } else {
                     $pass{$variant} = "PASSED";
                 }
