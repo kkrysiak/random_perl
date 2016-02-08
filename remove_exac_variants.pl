@@ -25,7 +25,7 @@ while(my $eline = <ANNOT>) {
     chomp($eline);
     ## If header, print it
     if($eline =~ /^chr/) {
-        print FAILED "$eline\n";
+#        print FAILED "$eline\n";
     } else {
         my @evars = split("\t", $eline);
         ## Create a key out of the chr,start,stop,ref,var
@@ -47,7 +47,8 @@ while(my $fline = <VARIANTS>) {
     chomp($fline);
     ## skip the header line
     if($fline =~ /^chr/) {
-        print KEEP "$fline\texac_AF\n"
+        print KEEP "$fline\texac_AF\n";
+        print FAILED "$fline\texac_AF\n";
     } else {
         ## Split the lines on tab
         my @fvars = split("\t", $fline);
