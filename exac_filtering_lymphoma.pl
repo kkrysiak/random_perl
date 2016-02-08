@@ -11,6 +11,7 @@ open(EXAC, "gunzip -c /gscmnt/gc2547/mardiswilsonlab/kkrysiak/exac_release2/ExAC
 
 #### Create output files
 open(OUT, ">/gscmnt/gc2547/mardiswilsonlab/kkrysiak/lymphoma/variant_files/exac_matched_variants_output.tsv");
+open(OUT2, ">/gscmnt/gc2547/mardiswilsonlab/kkrysiak/lymphoma/variant_files/exac_matched_variants_output_fullannot.tsv");
 
 ## Create hash to hold final cleaned up test variants
 my %variants = ();
@@ -24,6 +25,7 @@ while(my $line = <VARIANTS>) {
     if($header eq "") {
         $header = join("\t",$line,"exac_chr","exac_start","exac_ref","exac_alt","exac_AF");
         print OUT "$header\n";
+        print OUT2 "$header\texac_allele_counts\texac_allele_counts_adj\texac_total_alleles\texac_total_alleles_adj\texac_qual\texac_filter\texac_info\n";
     }
     ## Check that the first character is a valid chromosome, otherwise print to the removed output file
     if($line =~ /^([0-9]|X|Y|M)/){
@@ -163,31 +165,55 @@ while(my $line = <EXAC>){  ## read single line from the file
                 ## Use the new ExAc string to see if it matches a key in the variant hash
                 if($variants{$exac}) {
                     my @info = split(";",$vars[7]);
+                    ## Set up to output allele counts and numbers
+                    my @AC = split(",",$info[0]);
+                    my @AC_adj = split(",",$info[3]);
+                    my $AN = $info[12];
+                    my $AN_adj = $info[15];
+                    $AC[$i] =~ s/AC=//;
+                    $AC_adj[$i] =~ s/AC_Adj=//;
+                    $AN =~ s/AN=//;
+                    $AN_adj =~ s/AN_Adj=//;
                     foreach my $l (@info) {
                         if ($l =~ /^AF/) {
                             ## Pull the allele frequency data (AF section)
 #                            print "$l\n";
-                            ## Like alternate alleles, allele frequences are separated by a , so pull the correct AF for the alt allele
+                            ## Remove the leading "AF="
                             $l =~ s/AF=//;
+                            ## Like alternate alleles, allele frequences are separated by a , so pull the correct AF for the alt allele
                             my @af = split(",",$l);
 
-                            ## print the original test input line and the ExAc matched chr, ref, alt and allele frequency
+                            ## print the original test input line and the ExAC matched chr, ref, alt and allele frequency
                             print OUT "$variants{$exac}\t$exac\t$af[$i]\n";
+                            ## print out above plus the full ExAC annotation
+                            print OUT2 "$variants{$exac}\t$exac\t$af[$i]\t$AC[$i]\t$AC_adj[$i]\t$AN\t$AN_adj\t$vars[5]\t$vars[6]\t$vars[7]\n";
                         }
                     }
                 ## Use alternate exac string to query for the test variant                  
                 } elsif($exac2 ne "") {
                     if($variants{$exac2}) {
                         my @info2 = split(";",$vars[7]);
+                        ## Set up to output allele counts and numbers
+                        my @AC = split(",",$info2[0]);
+                        my @AC_adj = split(",",$info2[3]);
+                        my $AN = $info2[12];
+                        my $AN_adj = $info2[15];
+                        $AC[$i] =~ s/AC=//;
+                        $AC_adj[$i] =~ s/AC_Adj=//;
+                        $AN =~ s/AN=//;
+                        $AN_adj =~ s/AN_Adj=//;
                         foreach my $l2 (@info2) {
                             if ($l2 =~ /^AF/) {
                                 ## Pull the allele frequency data (AF section)
-                                ## Like alternate alleles, allele frequences are separated by a , so pull the correct AF for the alt allele
+                                ## Remove the leading "AF="
                                 $l2 =~ s/AF=//;
+                                ## Like alternate alleles, allele frequences are separated by a , so pull the correct AF for the alt allele
                                 my @af2 = split(",",$l2);
 
-                                ## print the original test input line and the ExAc matched chr, ref, alt and allele frequency
+                                ## print the original test input line and the ExAC matched chr, ref, alt and allele frequency
                                 print OUT "$variants{$exac2}\t$exac2\t$af2[$i]\n";
+                                ## print above plus the full ExAC annotation
+                                print OUT2 "$variants{$exac2}\t$exac2\t$af2[$i]\t$AC[$i]\t$AC_adj[$i]\t$AN\t$AN_adj\t$vars[5]\t$vars[6]\t$vars[7]\n";
                             }
                         }
                     }    
@@ -205,3 +231,4 @@ while(my $line = <EXAC>){  ## read single line from the file
 close VARIANTS;
 close EXAC;
 close OUT;
+close OUT2;
