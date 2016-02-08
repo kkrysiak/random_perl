@@ -34,9 +34,9 @@ while(my $eline = <ANNOT>) {
         my $af_value = sprintf("%.8f", $evars[38]);
         ## Assign the line as the value to the fail or pass hash based on the allele frequency cutoff used
         if($af_value>$af_cutoff) {
-            $fail{$e_string} = $eline;
+            $fail{$e_string} = $af_value;
         } elsif($af_value <= $af_cutoff) {
-            $pass{$e_string} = join("\t",@evars[0..33],$evars[38]);
+            $pass{$e_string} = $af_value;
         } else {
             print "ExAc allele frequency not valid, check fromatting.\n";
         }
@@ -55,9 +55,9 @@ while(my $fline = <VARIANTS>) {
         my $f_string = join("\t",@fvars[0..4]);
         ## Print the line to the correct file
         if($fail{$f_string}) {
-            print FAILED "$fail{$f_string}\n";
+            print FAILED "$fline\t$fail{$f_string}\n";
         } elsif($pass{$f_string}) {
-            print KEEP "$pass{$f_string}\n";
+            print KEEP "$fline\t$pass{$f_string}\n";
         } else {
             print KEEP "$fline\tNA\n";
         }
