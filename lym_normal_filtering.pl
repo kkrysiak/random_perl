@@ -20,7 +20,7 @@ my $recurrence = 5; ## minimum recurrence count
 ## Declare cutoffs for Indels
 my $indel_VAF = 2.5;      ## minimum VAF
 my $indel_readcount = 2;  ## minimum readcount
-my $indel_recurrence = 4; ## minimum recurrence count
+my $indel_recurrence = 7; ## minimum recurrence count
 
 ## Create a hashes of passed and failed variants
 my %fail = ();
