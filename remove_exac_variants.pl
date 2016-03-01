@@ -11,8 +11,8 @@ open(ANNOT, "</gscmnt/gc2547/mardiswilsonlab/kkrysiak/lymphoma/variant_files/exa
 #open(ANNOT, "</gscmnt/gc2547/mardiswilsonlab/kkrysiak/exac_release2/matched_variants_output.tsv") or die "ExAc annotated file not found";
 
 #### Create output files
-open(KEEP, ">/gscmnt/gc2547/mardiswilsonlab/kkrysiak/lymphoma/variant_files/All_Variants.lym_pon.exac.tsv");
-open(FAILED, ">/gscmnt/gc2547/mardiswilsonlab/kkrysiak/lymphoma/variant_files/All_Variants.lym_pon.exac_excluded.tsv");
+open(KEEP, ">/gscmnt/gc2547/mardiswilsonlab/kkrysiak/lymphoma/variant_files/All_Variants.lym_pon.exac2.tsv");
+open(FAILED, ">/gscmnt/gc2547/mardiswilsonlab/kkrysiak/lymphoma/variant_files/All_Variants.lym_pon.exac_excluded2.tsv");
 
 ## Declaire the exac allele frequency cutoff to separate the file
 my $af_cutoff = 0.001;
@@ -21,17 +21,29 @@ my $af_cutoff = 0.001;
 my %fail = ();
 my %pass = ();
 
+## Initialize a variable for the exac allele frequency column
+my $af_col = 0;
+
 while(my $eline = <ANNOT>) {
     chomp($eline);
-    ## If header, print it
+    ## If header, determine the allele frequency column
     if($eline =~ /^chr/) {
-#        print FAILED "$eline\n";
+        my @colnames = split("\t",$eline);
+        for my $col (@colnames) {
+            last if($col =~ /exac_AF/);
+            $af_col++;
+        }
+        if($colnames[$af_col] eq "exac_AF") {
+            print "Using $colnames[$af_col] column for ExAC allele frequency filtering\n";
+        } else {
+            print "Can't find 'exac_AF' column for ExAC allele frequency filtering, check input file.\n";
+        }
     } else {
         my @evars = split("\t", $eline);
         ## Create a key out of the chr,start,stop,ref,var
         my $e_string = join("\t",@evars[0..4]);
         ## Convert scientific notation of the allele frequency to something perl can handle
-        my $af_value = sprintf("%.8f", $evars[38]);
+        my $af_value = sprintf("%.8f", $evars[$af_col]);
         ## Assign the line as the value to the fail or pass hash based on the allele frequency cutoff used
         if($af_value>$af_cutoff) {
             $fail{$e_string} = $af_value;
