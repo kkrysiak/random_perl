@@ -7,7 +7,7 @@ exac_filtering_lymphoma.pl
 ## Input:
     ## Modified MGI annotation format file with first 5 columns = chr/start/stop/ref/var
 ## Output:
-    ## Original input file + 1 column of ExAC allele frequencies
+    ## Original input file + 1 column of ExAC adjusted allele frequencies (AC_adj/AN_adj)
     exac_matched_variants_output.tsv
     ## Original input file + 12 columns of ExAC data for additional review (chr,start,reference allele, alt allele, allele frequency, variant allele count (AC), adjusted allele count (AC_Adj), total allele count (AN), adjusted total allele count (AN_Adj), quality score, filter, info field)
     exac_matched_variants_output_fullannot.tsv
@@ -34,6 +34,7 @@ lym_normal_filtering.pl
 remove_exac_variants.pl
 ## Input:
     ## Modified MGI annotation format file with first 5 columns = chr/start/stop/ref/var
+    ## Must have ExAC_adj_AF column to filter by
     ## Output file from exac_filtering_lymphoma.pl (exac_matched_variants_output.tsv)
 ## Output:
     ## Variants that pass the ExAC allele frequency cutoff 
