@@ -7,15 +7,16 @@ use warnings;
 open(VARIANTS, "</gscmnt/gc2547/mardiswilsonlab/kkrysiak/lymphoma/variant_files/All_Variants.lym_pon.tsv") or die "Variant file not found";
 #open(VARIANTS, "</gscmnt/gc2547/mardiswilsonlab/kkrysiak/lymphoma/variant_files/lym_normal_filter/All_Variants.lym_pon.tsv") or die "Variant file not found";
 ## Open Exac-annotated variants file
-open(ANNOT, "</gscmnt/gc2547/mardiswilsonlab/kkrysiak/lymphoma/variant_files/exac_matched_variants_output.tsv") or die "ExAc annotated file not found";
+open(ANNOT, "<exac_matched_variants_output.tsv") or die "ExAc annotated file not found";
 #open(ANNOT, "</gscmnt/gc2547/mardiswilsonlab/kkrysiak/exac_release2/matched_variants_output.tsv") or die "ExAc annotated file not found";
 
 #### Create output files
-open(KEEP, ">/gscmnt/gc2547/mardiswilsonlab/kkrysiak/lymphoma/variant_files/All_Variants.lym_pon.exac2.tsv");
-open(FAILED, ">/gscmnt/gc2547/mardiswilsonlab/kkrysiak/lymphoma/variant_files/All_Variants.lym_pon.exac_excluded2.tsv");
+open(KEEP, ">All_Variants.lym_pon.exac2.tsv");
+open(FAILED, ">All_Variants.lym_pon.exac_excluded2.tsv");
 
 ## Declaire the exac allele frequency cutoff to separate the file
 my $af_cutoff = 0.001;
+my $af = "exac_adj_AF";
 
 ## Create a hashes of passed and failed variants
 my %fail = ();
@@ -30,13 +31,13 @@ while(my $eline = <ANNOT>) {
     if($eline =~ /^chr/) {
         my @colnames = split("\t",$eline);
         for my $col (@colnames) {
-            last if($col =~ /exac_AF/);
+            last if($col =~ /$af/);
             $af_col++;
         }
-        if($colnames[$af_col] eq "exac_AF") {
+        if($colnames[$af_col] eq $af) {
             print "Using $colnames[$af_col] column for ExAC allele frequency filtering\n";
         } else {
-            print "Can't find 'exac_AF' column for ExAC allele frequency filtering, check input file.\n";
+            print "Can't find $af column for ExAC allele frequency filtering, check input file.\n";
         }
     } else {
         my @evars = split("\t", $eline);
@@ -50,7 +51,7 @@ while(my $eline = <ANNOT>) {
         } elsif($af_value <= $af_cutoff) {
             $pass{$e_string} = $af_value;
         } else {
-            print "ExAc allele frequency not valid, check fromatting.\n";
+            print "ExAc allele frequency not valid, check formatting.\n";
         }
     }
 }
@@ -59,8 +60,8 @@ while(my $fline = <VARIANTS>) {
     chomp($fline);
     ## skip the header line
     if($fline =~ /^chr/) {
-        print KEEP "$fline\texac_AF\n";
-        print FAILED "$fline\texac_AF\n";
+        print KEEP "$fline\t$af\n";
+        print FAILED "$fline\t$af\n";
     } else {
         ## Split the lines on tab
         my @fvars = split("\t", $fline);

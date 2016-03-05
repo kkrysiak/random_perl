@@ -10,59 +10,24 @@ open(EXAC, "gunzip -c /gscmnt/gc2547/mardiswilsonlab/kkrysiak/exac_release2/ExAC
 #open(EXAC, "/gscmnt/gc2547/mardiswilsonlab/kkrysiak/exac_release2/test.vcf") or die "Can't open test file";
 
 #### Create output files
-open(OUT, ">exac_matched_variants_output.tsv");
-open(OUT2, ">exac_matched_variants_output_fullannot.tsv");
+open(PASS, ">exac_pass.tsv");
+open(FAIL, ">exac_fail.tsv");
 
-## Create hash to hold final cleaned up test variants
-my %variants = ();
-## Pull header from test variant file
-my $header = "";
+## Declaire the exac allele frequency cutoff to separate the file
+my $af_cutoff = 0.001;
 
-#### Read in test variants line by line, clean them up and assign them to a hash
-while(my $line = <VARIANTS>) {
-    chomp($line);
-    ## Print the first line of the file + 5 ExAc column headings to output file
-    if($header eq "") {
-        $header = join("\t",$line,"exac_chr","exac_start","exac_ref","exac_alt","exac_adj_AF");
-        print OUT "$header\n";
-        print OUT2 "$header\texac_allele_counts\texac_allele_counts_adj\texac_total_alleles\texac_total_alleles_adj\texac_qual\texac_filter\texac_info\n";
-    }
-    ## Check that the first character is a valid chromosome, otherwise print to the removed output file
-    if($line =~ /^([0-9]|X|Y|M)/){
-        ## Create an array with the different columns of the line
-        my @vars = split("\t", $line);
-        ## Check that the chromosome, start, reference base, variant base are formatted as expected
-        if($vars[0] =~ /^(\d*|X|Y|MT)$/ && $vars[1] =~ /^\d+$/ && $vars[3] =~ /(A|C|T|G|-|0)+/ && $vars[4] =~ /(A|C|T|G|-|0)+/) {
-            ## Change - to 0 to designate indels
-            if($vars[3] =~ /-/){
-                $vars[3] = 0;
-            } elsif ($vars[4] =~ /-/){
-                $vars[4] = 0;
-            }
-            ## Create a new string with the approved chromosome, start, reference base, variant base
-            my $var_string = join("\t",$vars[0],$vars[1],@vars[3..4]);
-            ## Assign the new string as a key in a hash
-            $variants{$var_string} = $line;           
-        } else {
-            unless($line =~ /^chr/) {
-                ## Print skipped lines
-                print "Variant formatting problem:\n$line\n";
-            }
-        }
-    } else {
-        unless($line =~ /^chr/) {
-            ## Print skipped lines
-            print "Variant formatting problem:\n$line\n";
-        }
-    }
-}
+## Create a hashes of passed and failed variants
+my %fail = ();
+my %pass = ();
+
+## Initialize a variable to track progress
+my $prog = "";
 
 ## Iterate through the ExAc VCF file line by line
 while(my $line = <EXAC>){  ## read single line from the file
     chomp($line);
     ## Skip lines starting with #
     if($line =~ /^\#/){
-#        print "$line\n";
     } else {
         my $ins = 0;
         ## create an array with the different columns of the line
@@ -162,64 +127,49 @@ while(my $line = <EXAC>){  ## read single line from the file
                     $exac = join("\t",$vars[0],$vars[1],$vars[3],$alt[$i]);
                 }
 
-                ## Use the new ExAc string to see if it matches a key in the variant hash
-                if($variants{$exac}) {
-                    my @info = split(";",$vars[7]);
-                    ## Set up to output allele counts and numbers
-                    my @AC = split(",",$info[0]);
-                    my @AC_adj = split(",",$info[3]);
-                    my $AN = $info[12];
-                    my $AN_adj = $info[15];
-                    $AC[$i] =~ s/AC=//;
-                    $AC_adj[$i] =~ s/AC_Adj=//;
-                    $AN =~ s/AN=//;
-                    $AN_adj =~ s/AN_Adj=//;
-                    foreach my $l (@info) {
-                        if ($l =~ /^AF/) {
-                            ## Pull the allele frequency data (AF section)
-                            ## Remove the leading "AF="
-                            $l =~ s/AF=//;
-                            ## Like alternate alleles, allele frequences are separated by a , so pull the correct AF for the alt allele
-                            my @af = split(",",$l);
-                            ## Create an adjusted allele frequency based on the adjusted allele counts
-                            my $AF_adj = sprintf("%.3e",$AC_adj[$i]/$AN_adj);
-                            ## print the original test input line and the ExAC matched chr, ref, alt and allele frequency
-                            print OUT "$variants{$exac}\t$exac\t$AF_adj\n";
-                            ## print out above plus the full ExAC annotation
-                            print OUT2 "$variants{$exac}\t$exac\t$af[$i]\t$AF_adj\t$AC[$i]\t$AC_adj[$i]\t$AN\t$AN_adj\t$vars[5]\t$vars[6]\t$vars[7]\n";
-                        }
-                    }
-                ## Use alternate exac string to query for the test variant                  
-                } elsif($exac2 ne "") {
-                    if($variants{$exac2}) {
-                        my @info2 = split(";",$vars[7]);
-                        ## Set up to output allele counts and numbers
-                        my @AC = split(",",$info2[0]);
-                        my @AC_adj = split(",",$info2[3]);
-                        my $AN = $info2[12];
-                        my $AN_adj = $info2[15];
-                        $AC[$i] =~ s/AC=//;
-                        $AC_adj[$i] =~ s/AC_Adj=//;
-                        $AN =~ s/AN=//;
-                        $AN_adj =~ s/AN_Adj=//;
-                        foreach my $l2 (@info2) {
-                            if ($l2 =~ /^AF/) {
-                                ## Pull the allele frequency data (AF section)
-                                ## Remove the leading "AF="
-                                $l2 =~ s/AF=//;
-                                ## Like alternate alleles, allele frequences are separated by a , so pull the correct AF for the alt allele
-                                my @af2 = split(",",$l2);
-                                ## Create an adjusted allele frequency based on the adjusted allele counts
-                                my $AF_adj = sprintf("%.3e",$AC_adj[$i]/$AN_adj);
-                                ## print the original test input line and the ExAC matched chr, ref, alt and allele frequency
-                                print OUT "$variants{$exac2}\t$exac2\t$AF_adj\n";
-                                ## print above plus the full ExAC annotation
-                                print OUT2 "$variants{$exac2}\t$exac2\t$af2[$i]\t$AF_adj\t$AC[$i]\t$AC_adj[$i]\t$AN\t$AN_adj\t$vars[5]\t$vars[6]\t$vars[7]\n";
-                            }
-                        }
-                    }    
+                ## Print a progress message to the user
+                if($prog eq $vars[0]) {
+                } else {
+                    print "Processing ExAC chromosome $vars[0]\n";
+                    $prog = $vars[0];
                 }
 
+                ## Initialize allele frequency variable
+                my $AF_adj = 0;
+                ## Collect desired columns (adjusted allele count, adjusted total count) from INFO field
+                my @info = split(";",$vars[7]);
+                ## Set up to output allele counts and numbers
+                my @AC = split(",",$info[0]);
+                my @AC_adj = split(",",$info[3]);
+                my $AN = $info[12];
+                my $AN_adj = $info[15];
+                $AC[$i] =~ s/AC=//;
+                $AC_adj[$i] =~ s/AC_Adj=//;
+                $AN =~ s/AN=//;
+                $AN_adj =~ s/AN_Adj=//;
+                ## Change the allele count to a number
+                $AC_adj[$i] = sprintf("%.2f",$AC_adj[$i]);
+                ## Create an adjusted allele frequency based on the adjusted allele counts as a decimal (not scientific notation)
+                if($AC_adj[$i] == 0) {
+                    $AF_adj = $AC_adj[$i];
+                } else {
+                    $AF_adj = sprintf("%.8f",$AC_adj[$i]/$AN_adj);
+                }
+#            print "$exac\t$AF_adj\n";
+                ## Assign 
+                if($AF_adj>$af_cutoff) {
+                    $fail{$exac} = $AF_adj;
+                    if($exac2 ne "") {
+                        $fail{$exac2} = $AF_adj;
+                    }
+                } elsif($AF_adj <= $af_cutoff) {
+                    $pass{$exac} = $AF_adj;
+                    if($exac2 ne "") {
+                        $pass{$exac2} = $AF_adj;
+                    }
+                } else {
+                    print "ExAc allele frequency not valid, check formatting.\n";
+                }                        
                 $i++;        
             } 
         } else {
@@ -228,8 +178,58 @@ while(my $line = <EXAC>){  ## read single line from the file
     }
 }
 
+## Initialize header
+my $header = "";
+
+## Read in variant file
+while(my $line = <VARIANTS>) {
+    chomp($line);
+    ## Print the first line of the file + 5 ExAc column headings to output file
+    if($header eq "") {
+        $header = join("\t",$line,"ExAC_adj_AF");
+        print PASS "$header\n";
+        print FAIL "$header\n";
+    }
+    ## Check that the first character is a valid chromosome, otherwise print to the removed output file
+    if($line =~ /^([0-9]|X|Y|M)/){
+        ## Create an array with the different columns of the line
+        my @vars = split("\t", $line);
+        ## Check that the chromosome, start, reference base, variant base are formatted as expected
+        if($vars[0] =~ /^(\d*|X|Y|MT)$/ && $vars[1] =~ /^\d+$/ && $vars[3] =~ /(A|C|T|G|-|0)+/ && $vars[4] =~ /(A|C|T|G|-|0)+/) {
+            ## Change - to 0 to designate indels
+            if($vars[3] =~ /-/){
+                $vars[3] = 0;
+            } elsif ($vars[4] =~ /-/){
+                $vars[4] = 0;
+            }
+            ## Create a new string with the approved chromosome, start, reference base, variant base
+            my $var_string = join("\t",$vars[0],$vars[1],@vars[3..4]);
+            ## Test to see if the variant is in the pass or fail hash and print to the appropriate file
+            if($fail{$var_string}) {
+                print FAIL "$line\t$fail{$var_string}\n";
+            }elsif($pass{$var_string}) {
+                print PASS "$line\t$pass{$var_string}\n";
+            }else{
+                print PASS "$line\tNA\n";
+            }
+        } else {
+            unless($line =~ /^chr/) {
+                ## Print skipped lines
+                print "Variant formatting problem:\n$line\n";
+            }
+        }
+    } else {
+        unless($line =~ /^chr/) {
+            ## Print skipped lines
+            print "Variant formatting problem:\n$line\n";
+        }
+    }
+}
+
+
+
 ## Close files
 close VARIANTS;
 close EXAC;
-close OUT;
-close OUT2;
+close PASS;
+close FAIL;
