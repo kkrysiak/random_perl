@@ -7,19 +7,20 @@ use warnings;
 open(VARIANTS, "</gscmnt/gc2547/mardiswilsonlab/kkrysiak/Stat1/maf_filtering/Table_S1.MAF_noquote.tsv") or die "Variant file not found";
 #open(VARIANTS, "</gscmnt/gc2547/mardiswilsonlab/kkrysiak/Stat1/maf_filtering/test.tsv") or die "Test file not found";
 
-## gz VCF file containing all ExAc variants
+## gz VCF file containing all MGP variants
 open(MGP_SNP, "gunzip -c /gscmnt/gc2547/mardiswilsonlab/kkrysiak/sanger_MGP/mgp.v2.snps.annot.reformat.vcf.gz | ") or die "Can't open ExAc file";
 open(MGP_INDEL, "gunzip -c /gscmnt/gc2547/mardiswilsonlab/kkrysiak/sanger_MGP/mgp.v2.indels.annot.reformat.vcf.gz | ") or die "Can't open ExAc file";
 
 #### Create output files
-open(PASS, ">/gscmnt/gc2547/mardiswilsonlab/kkrysiak/Stat1/maf_filtering/mgp_pass.tsv") or die "Can't open output file: $!";
-open(FAIL, ">/gscmnt/gc2547/mardiswilsonlab/kkrysiak/Stat1/maf_filtering/mgp_fail.tsv") or die "Can't open output file: $!";
+open(PASS, ">/gscmnt/gc2547/mardiswilsonlab/kkrysiak/Stat1/maf_filtering/mgp_pass.tsv");
+open(FAIL, ">/gscmnt/gc2547/mardiswilsonlab/kkrysiak/Stat1/maf_filtering/mgp_fail.tsv");
 
 ## Declare QUAL cutoff to separate the file
 my $qual_cutoff = 999;
 
-## Create a hash of variants to be tested
+## Initialize a hash of variants to be tested
 my %variants = ();
+## Initialize a hash of repeated variants to be tested
 my %rep_vars = ();
 
 ## Initialize a variable to track progress
@@ -53,7 +54,7 @@ while(my $line = <VARIANTS>) {
             my $var_string = join("\t",$vars[0],$vars[1],@vars[3..4]);
             ## Check if the variant is already a key in the hash
             if($variants{$var_string}) {
-                $rep_vars{$var_string} = $line;
+                push(@{$rep_vars{$var_string}}, $line);
             } else {
                 ## assign new variant string as a key to the variant hash and the line to the value
                 $variants{$var_string} = $line;        
@@ -77,7 +78,9 @@ sub mgpTest {
     my $line = shift;
     $prog = shift;
     my $variants = shift;
-    my $rep_vars = shift;
+    ## %rep_vars is hash of arrays
+    my $rep_vars_ref = shift;  
+    my %rep_vars = %$rep_vars_ref;
 
     ## Skip lines starting with #
     if($line =~ /^\#/){
@@ -192,54 +195,65 @@ sub mgpTest {
                 
                 ## Check if the MGP variant is in the tested list of variants
                 if($$variants{$mgp} || $$variants{$mgp2}) {
-                    ## Assign variants as passed or failed
+                    ## Assign variants as passed or failed and remove them from the hashes after printing to the appropriate file
                     if($vars[6] eq "PASS") {
                         print FAIL "$$variants{$mgp}\t$qual\t$vars[6]\n";
-#    print "MATCHED - fail\n$$variants{$mgp}\n$mgp\t$qual\t$vars[6]\n$line\n";
                         delete $$variants{$mgp};
-                        if($$rep_vars{$mgp}) {
-                            print FAIL "$$rep_vars{$mgp}\t$qual\t$vars[6]\n";
-                            delete $$rep_vars{$mgp};
+                        ## Print variants with repeat entries (2+ lines in the input variant file)
+                        if($rep_vars{$mgp}) {
+                            foreach my $r (@{$rep_vars{$mgp}}) {
+                                print FAIL "$r\t$qual\t$vars[6]\n";
+                            }
+                            delete $rep_vars{$mgp};
                         }
+                        ## Repeat above for alterative representation of the variant if it exists
                         if($$variants{$mgp2}) {
                             print FAIL "$$variants{$mgp2}\t$qual\t$vars[6]\n";
                             delete $$variants{$mgp2};
-                            if($$rep_vars{$mgp2}) {
-                                print FAIL "$$rep_vars{$mgp2}\t$qual\t$vars[6]\n";
-                                delete $$rep_vars{$mgp2};
+                            if($rep_vars{$mgp2}) {
+                                foreach my $r (@{$rep_vars{$mgp2}}) {
+                                    print FAIL "$r\t$qual\t$vars[6]\n";
+                                }
+                                delete $rep_vars{$mgp2};
                             }
                         }
                     } else { 
                         if($qual >= $qual_cutoff) {
                             print FAIL "$$variants{$mgp}\t$qual\t$vars[6]\n";
-#    print "MATCHED - fail\n$$variants{$mgp}\n$mgp\t$qual\t$vars[6]\n$line\n";
                             delete $$variants{$mgp};
-                            if($$rep_vars{$mgp}) {
-                                print FAIL "$$rep_vars{$mgp}\t$qual\t$vars[6]\n";
-                                delete $$rep_vars{$mgp};
+                            if($rep_vars{$mgp}) {
+                                foreach my $r (@{$rep_vars{$mgp}}) {
+                                    print FAIL "$r\t$qual\t$vars[6]\n";
+                                }
+                                delete $rep_vars{$mgp};
                             }
                             if($$variants{$mgp2}) {
                                 print FAIL "$$variants{$mgp2}\t$qual\t$vars[6]\n";
                                 delete $$variants{$mgp2};
-                                if($$rep_vars{$mgp2}) {
-                                    print FAIL "$$rep_vars{$mgp2}\t$qual\t$vars[6]\n";
-                                    delete $$rep_vars{$mgp2};
+                                if($rep_vars{$mgp2}) {
+                                    foreach my $r (@{$rep_vars{$mgp2}}) {
+                                        print FAIL "$r\t$qual\t$vars[6]\n";
+                                    }                                    
+                                    delete $rep_vars{$mgp2};
                                 }
                             }
                         } elsif($qual < $qual_cutoff) {
-#    print "MATCHED - pass\n$$variants{$mgp}\n$mgp\t$qual\n$line\n";
                             print PASS "$$variants{$mgp}\t$qual\n";
                             delete $$variants{$mgp};
-                            if($$rep_vars{$mgp}) {
-                                print PASS "$$rep_vars{$mgp}\t$qual\t$vars[6]\n";
-                                delete $$rep_vars{$mgp};
+                            if($rep_vars{$mgp}) {
+                                foreach my $r (@{$rep_vars{$mgp}}) {
+                                    print PASS "$r\t$qual\t$vars[6]\n";
+                                }
+                                delete $rep_vars{$mgp};
                             }
                             if($$variants{$mgp2}) {
                                 print PASS "$$variants{$mgp2}\t$qual\t$vars[6]\n";
                                 delete $$variants{$mgp2};
-                                if($$rep_vars{$mgp}) {
-                                    print PASS "$$rep_vars{$mgp}\t$qual\t$vars[6]\n";
-                                    delete $$rep_vars{$mgp};
+                                if($rep_vars{$mgp2}) {
+                                    foreach my $r (@{$rep_vars{$mgp2}}) {
+                                        print PASS "$r\t$qual\t$vars[6]\n";
+                                    }
+                                    delete $rep_vars{$mgp2};
                                 } 
                             }
                         }
@@ -254,18 +268,26 @@ sub mgpTest {
 }
 
 ## Iterate through the MGP SNP VCF file line by line
+print "Testing SNPs\n";
 while(my $line = <MGP_SNP>){  ## read single line from the file
     chomp($line);
     mgpTest($line, $prog, \%variants, \%rep_vars);
 }
 ## Iterate through the MGP indel VCF file line by line
-while(my $line = <MGP_INDEL>){  ## read single line from the file
-    chomp($line);
-    mgpTest($line, $prog, \%variants, \%rep_vars);
+print "Testing indels\n";
+while(my $line2 = <MGP_INDEL>){  ## read single line from the file
+    chomp($line2);
+    mgpTest($line2, $prog, \%variants, \%rep_vars);
 }
 
 print "Printing remaining variants\n";
 print PASS "$variants{$_}\tNA\n" for (keys %variants);
+## Print remaining repeated variants
+foreach my $i (keys %rep_vars) {
+    foreach my $n (@{$rep_vars{$i}}) {
+        print PASS "$n\tNA\n";
+    }
+}
 
 ## Close files
 close VARIANTS;
