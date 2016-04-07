@@ -20,7 +20,7 @@ my $af_cutoff = 0.001;
 my %fail = ();
 my %pass = ();
 
-## Initialize a variable to track progress
+## Initialize a variable to track progress and print a message to the user
 my $prog = "";
 
 ## Iterate through the ExAc VCF file line by line
@@ -34,7 +34,7 @@ while(my $line = <EXAC>){  ## read single line from the file
         my @vars = split("\t", $line);
         
         ## Check that the chromosome and start site are formatted as expected
-        if($vars[0] =~ /^(\d*|X|Y|MT)$/ && $vars[1] =~ /^\d+$/ && $vars[3] =~ /(A|C|T|G)+/ && $vars[4] =~ /(A|C|T|G)+/) {
+        if($vars[0] =~ /^(\d*|X|Y|MT)$/ && $vars[1] =~ /^\d+$/ && $vars[3] =~ /^(A|C|T|G)+$/ && $vars[4] =~ /^(A|C|T|G|\,)+$/) {
             ## Split the alt allele into a new array (some have more than 1 alternate allele)
             my @alt = split(",", $vars[4]);
             ## Initialize the final ExAc variable and a counter
@@ -168,12 +168,12 @@ while(my $line = <EXAC>){  ## read single line from the file
                         $pass{$exac2} = $AF_adj;
                     }
                 } else {
-                    print "ExAc allele frequency not valid, check formatting.\n";
+                    print "ExAC allele frequency not valid, check formatting.\n";
                 }                        
                 $i++;        
             } 
         } else {
-            print "$line\n";
+            die "ExAC input line not formatted as expected\n$line\nPlease check input\n";
         }
     }
 }
@@ -181,21 +181,24 @@ while(my $line = <EXAC>){  ## read single line from the file
 ## Initialize header
 my $header = "";
 
+## Reset progress variable to continue to print progress to user
+$prog = "";
+
 ## Read in variant file
 while(my $line = <VARIANTS>) {
     chomp($line);
-    ## Print the first line of the file + 5 ExAc column headings to output file
+    ## Print the first line of the file + ExAc column heading to output file
     if($header eq "") {
         $header = join("\t",$line,"ExAC_adj_AF");
         print PASS "$header\n";
         print FAIL "$header\n";
     }
     ## Check that the first character is a valid chromosome, otherwise print to the removed output file
-    if($line =~ /^([0-9]|X|Y|M)/){
+    if($line =~ /^([0-9]|X|Y|M|GL)/){
         ## Create an array with the different columns of the line
         my @vars = split("\t", $line);
         ## Check that the chromosome, start, reference base, variant base are formatted as expected
-        if($vars[0] =~ /^(\d*|X|Y|MT)$/ && $vars[1] =~ /^\d+$/ && $vars[3] =~ /(A|C|T|G|-|0)+/ && $vars[4] =~ /(A|C|T|G|-|0)+/) {
+        if($vars[0] =~ /^(\d*|X|Y|MT|GL)$/ && $vars[1] =~ /^\d+$/ && $vars[3] =~ /(A|C|T|G|-|0)+/ && $vars[4] =~ /(A|C|T|G|-|0)+/) {
             ## Change - to 0 to designate indels
             if($vars[3] =~ /-/){
                 $vars[3] = 0;
@@ -212,16 +215,28 @@ while(my $line = <VARIANTS>) {
             }else{
                 print PASS "$line\tNA\n";
             }
+            ## Print a progress message to the user
+            if($prog eq $vars[0]) {
+            } else {
+                print "Processing Variant file chromosome $vars[0]\n";
+                $prog = $vars[0];
+            }
         } else {
-            unless($line =~ /^chr/) {
+            if($line =~ /^chr/) {
+                ## Print warning
+                die "File format not supported. Please remove chr prefix from variant file.\n";
+            } else {
                 ## Print skipped lines
-                print "Variant formatting problem:\n$line\n";
+                die "Variant formatting problem:\n$line\n";
             }
         }
     } else {
-        unless($line =~ /^chr/) {
+        if($line =~ /^chr/) {
+            ## Print warning
+            die "File format not supported. Please remove chr prefix from variant file.\n";
+        } else {
             ## Print skipped lines
-            print "Variant formatting problem:\n$line\n";
+            die "Variant formatting problem:\n$line\n";
         }
     }
 }
