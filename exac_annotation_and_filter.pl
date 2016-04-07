@@ -194,7 +194,7 @@ while(my $line = <VARIANTS>) {
         print FAIL "$header\n";
     }
     ## Check that the first character is a valid chromosome, otherwise print to the removed output file
-    if($line =~ /^([0-9]|X|Y|M|GL)/){
+    elsif($line =~ /^([0-9]|X|Y|M|GL)/){
         ## Create an array with the different columns of the line
         my @vars = split("\t", $line);
         ## Check that the chromosome, start, reference base, variant base are formatted as expected
