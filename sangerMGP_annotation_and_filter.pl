@@ -4,7 +4,7 @@ use warnings;
 
 #### Open relavent input files
 ## Our variant file
-open(VARIANTS, "</gscmnt/gc2547/mardiswilsonlab/kkrysiak/Stat1/maf_filtering/") or die "Variant file not found";
+open(VARIANTS, "</gscmnt/gc2547/mardiswilsonlab/kkrysiak/Stat1/maf_filtering/Table_S1.MAF_noquote.tsv") or die "Variant file not found";
 ## gz VCF file containing all ExAc variants
 open(MGP_SNP, "gunzip -c /gscmnt/gc2547/mardiswilsonlab/kkrysiak/sanger_MGP/mgp.v2.snps.annot.reformat.vcf.gz | ") or die "Can't open ExAc file";
 open(MGP_INDEL, "gunzip -c /gscmnt/gc2547/mardiswilsonlab/kkrysiak/sanger_MGP/mgp.v2.indels.annot.reformat.vcf.gz | ") or die "Can't open ExAc file";
@@ -169,7 +169,7 @@ while(my $line = <MGP_SNP>){  ## read single line from the file
     mgpTest($line, $prog, \%fail, \%pass);
 }
 ## Iterate through the MGP indel VCF file line by line
-while(my $line = <MGP_indel>){  ## read single line from the file
+while(my $line = <MGP_INDEL>){  ## read single line from the file
     chomp($line);
     mgpTest($line, $prog, \%fail, \%pass);
 }
