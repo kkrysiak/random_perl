@@ -51,7 +51,8 @@ remove_exac_variants.pl
 #### Annotate variant file with ExAC adjusted allele frequencies and separate into passed or failed variants
 exac_annotation_and_filter.pl
 ## Input:
-    ## Modified MGI annotation format file with first 5 columns = chr/start/stop/ref/var
+    ## Modified MGI annotation format file with first 5 columns = chr/start/stop/ref/var (User input)
+    ## Accepts user-defined exac cutoff or uses default 0.001
     ## ExAC release 2 VCF file
 ## Output:
     ## Variants that pass the allele frequency cutoff (currently hard coded at 0.001)

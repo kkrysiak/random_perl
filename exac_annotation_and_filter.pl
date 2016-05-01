@@ -7,7 +7,7 @@ my ($filename, $af) = @ARGV;
 
 #### Open relavent input files
 ## Our variant file
-open my $fh, '<', $filename or die "Variant file not found. User-defined variant file required followed by optional allele frequency cutoff.";
+open my $fh, '<', $filename or die "Variant file ($filename) not found. User-defined variant file required followed by optional allele frequency cutoff.";
 #open(VARIANTS, "</gscmnt/gc2547/mardiswilsonlab/kkrysiak/lymphoma/variant_files/All_Variants.tsv") or die "Variant file not found";
 
 ## gz VCF file containing all ExAc variants
@@ -252,6 +252,7 @@ while(my $line = <$fh>) {
 
 ## Close files
 close $fh;
+#close VARIANTS;
 close EXAC;
 close PASS;
 close FAIL;
