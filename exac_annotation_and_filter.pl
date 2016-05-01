@@ -2,9 +2,14 @@
 use strict;
 use warnings;
 
+## Assign user arguments
+my ($filename, $af) = @ARGV;
+
 #### Open relavent input files
 ## Our variant file
-open(VARIANTS, "</gscmnt/gc2547/mardiswilsonlab/kkrysiak/lymphoma/variant_files/All_Variants.tsv") or die "Variant file not found";
+open my $fh, '<', $filename or die "Variant file not found. User-defined variant file required followed by optional allele frequency cutoff.";
+#open(VARIANTS, "</gscmnt/gc2547/mardiswilsonlab/kkrysiak/lymphoma/variant_files/All_Variants.tsv") or die "Variant file not found";
+
 ## gz VCF file containing all ExAc variants
 open(EXAC, "gunzip -c /gscmnt/gc2547/mardiswilsonlab/kkrysiak/exac_release2/ExAC.r0.2.sites.vep.vcf.gz | ") or die "Can't open ExAc file";
 #open(EXAC, "/gscmnt/gc2547/mardiswilsonlab/kkrysiak/exac_release2/test.vcf") or die "Can't open test file";
@@ -13,8 +18,15 @@ open(EXAC, "gunzip -c /gscmnt/gc2547/mardiswilsonlab/kkrysiak/exac_release2/ExAC
 open(PASS, ">exac_pass.tsv");
 open(FAIL, ">exac_fail.tsv");
 
-## Declaire the exac allele frequency cutoff to separate the file
-my $af_cutoff = 0.001;
+## Use user-defined or set default exac allele frequency cutoff to separate the file
+my $af_cutoff = 0;
+if (not defined $af) {
+    print "Using default exac allele frequency cutoff: 0.001\n";
+    $af_cutoff = 0.001;
+} else {
+    print "Using user-defined exac allele frequency cutoff: $af\n";
+    $af_cutoff = $af;
+}
 
 ## Create a hashes of passed and failed variants
 my %fail = ();
@@ -185,13 +197,14 @@ my $header = "";
 $prog = "";
 
 ## Read in variant file
-while(my $line = <VARIANTS>) {
+while(my $line = <$fh>) {
     chomp($line);
     ## Print the first line of the file + ExAc column heading to output file
     if($header eq "") {
         $header = join("\t",$line,"ExAC_adj_AF");
         print PASS "$header\n";
         print FAIL "$header\n";
+        print "Printing output files\n";
     }
     ## Check that the first character is a valid chromosome, otherwise print to the removed output file
     elsif($line =~ /^([0-9]|X|Y|M|GL)/){
@@ -214,12 +227,6 @@ while(my $line = <VARIANTS>) {
                 print PASS "$line\t$pass{$var_string}\n";
             }else{
                 print PASS "$line\tNA\n";
-            }
-            ## Print a progress message to the user
-            if($prog eq $vars[0]) {
-            } else {
-                print "Processing Variant file chromosome $vars[0]\n";
-                $prog = $vars[0];
             }
         } else {
             if($line =~ /^chr/) {
@@ -244,7 +251,7 @@ while(my $line = <VARIANTS>) {
 
 
 ## Close files
-close VARIANTS;
+close $fh;
 close EXAC;
 close PASS;
 close FAIL;
