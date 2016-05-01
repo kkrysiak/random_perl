@@ -2,6 +2,17 @@
 use strict;
 use warnings;
 
+
+#### Perl script annotates variant file with ExAC adjusted allele frequencies (release 2.0, GRCh37) 
+## Input: 
+## arg0 = variant file with first 5 col (chr,start,stop,ref,var) 
+## arg1 = OPTIONAL allele frequency cutoff, default 0.001
+
+## Output:
+## exac_pass.tsv - Variants with adjusted allele frequency <= set value, maintains original columns with ExAC af column appended to the end
+## exac_fail.tsv - Variants with adjusted allele frequency > set value, maintains original columns with ExAC af column appended to the end
+
+
 ## Assign user arguments
 my ($filename, $af) = @ARGV;
 
