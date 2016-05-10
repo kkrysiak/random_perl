@@ -7,14 +7,16 @@ my $af_cutoff = 0.001;
 my $filename = '';
 my $prefix = 'exac';
 
+
 GetOptions ('variant_file=s'=>\$filename, 'af_cutoff=f'=>\$af_cutoff, 'outfile_prefix=s'=>\$prefix);
 
+
 my $usage=<<INFO;
+    Perl script annotates variant file with ExAC adjusted allele frequencies (release 2.0, GRCh37)
+
     Example usage:
         exac_annotation_and_filter.pl --variant_file=/gscmnt/gc2547/mardiswilsonlab/kkrysiak/lymphoma/variant_files/All_Variants.tsv --af_cutoff=0.001 --outfile_prefix='testing'
     
-    Uses ExAC release 2.0 - /gscmnt/gc2547/mardiswilsonlab/kkrysiak/exac_release2/ExAC.r0.2.sites.vep.vcf.gz
-
     Requires
         --variant_file      Variant file with first 5 col (chr,start,stop,ref,var). Maintains original columns with ExAC af column appended to the end of output files.
 
@@ -25,16 +27,6 @@ my $usage=<<INFO;
 
 
 INFO
-
-
-#### Perl script annotates variant file with ExAC adjusted allele frequencies (release 2.0, GRCh37) 
-## Input: 
-## arg0 = variant file with first 5 col (chr,start,stop,ref,var) 
-## arg1 = OPTIONAL allele frequency cutoff, default 0.001
-
-## Output:
-## exac_pass.tsv - Variants with adjusted allele frequency <= set value, maintains original columns with ExAC af column appended to the end
-## exac_fail.tsv - Variants with adjusted allele frequency > set value, maintains original columns with ExAC af column appended to the end
 
 
 #### Open relavent input files
