@@ -1,6 +1,30 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
+use Getopt::Long;
+
+my $af_cutoff = 0.001;
+my $filename = '';
+my $prefix = 'exac';
+
+GetOptions ('variant_file=s'=>\$filename, 'af_cutoff=f'=>\$af_cutoff, 'outfile_prefix=s'=>\$prefix);
+
+my $usage=<<INFO;
+    Example usage:
+        exac_annotation_and_filter.pl --variant_file=/gscmnt/gc2547/mardiswilsonlab/kkrysiak/lymphoma/variant_files/All_Variants.tsv --af_cutoff=0.001 --outfile_prefix='testing'
+    
+    Uses ExAC release 2.0 - /gscmnt/gc2547/mardiswilsonlab/kkrysiak/exac_release2/ExAC.r0.2.sites.vep.vcf.gz
+
+    Requires
+        --variant_file      Variant file with first 5 col (chr,start,stop,ref,var). Maintains original columns with ExAC af column appended to the end of output files.
+
+    Optional parameters
+        --af_cutoff         default=0.001   Variants with adjusted allele frequency <= set value are printed to PASS file. Variants with adjusted allele frequency > set 
+                                            value are printed to FAIL file.
+        --outfile_prefix    default="exac"  File name prefix for output files.
+
+
+INFO
 
 
 #### Perl script annotates variant file with ExAC adjusted allele frequencies (release 2.0, GRCh37) 
@@ -13,31 +37,18 @@ use warnings;
 ## exac_fail.tsv - Variants with adjusted allele frequency > set value, maintains original columns with ExAC af column appended to the end
 
 
-## Assign user arguments
-my ($filename, $af) = @ARGV;
-
 #### Open relavent input files
 ## Our variant file
-open my $fh, '<', $filename or die "Variant file ($filename) not found. User-defined variant file required followed by optional allele frequency cutoff.";
-#open(VARIANTS, "</gscmnt/gc2547/mardiswilsonlab/kkrysiak/lymphoma/variant_files/All_Variants.tsv") or die "Variant file not found";
-
+open my $fh, '<', $filename or die "Variant file ($filename) not found.\n\n$usage\n";
 ## gz VCF file containing all ExAc variants
-open(EXAC, "gunzip -c /gscmnt/gc2547/mardiswilsonlab/kkrysiak/exac_release2/ExAC.r0.2.sites.vep.vcf.gz | ") or die "Can't open ExAc file";
-#open(EXAC, "/gscmnt/gc2547/mardiswilsonlab/kkrysiak/exac_release2/test.vcf") or die "Can't open test file";
+open(EXAC, "gunzip -c /gscmnt/gc2547/mardiswilsonlab/kkrysiak/exac_release2/ExAC.r0.2.sites.vep.vcf.gz | ") or die "Can't open ExAc file.\n\n$usage\n";
 
 #### Create output files
-open(PASS, ">exac_pass.tsv");
-open(FAIL, ">exac_fail.tsv");
+open my $out_pass, '>', join("",$prefix,".pass.tsv");
+open my $out_fail, '>', join("",$prefix,".fail.tsv");
 
 ## Use user-defined or set default exac allele frequency cutoff to separate the file
-my $af_cutoff = 0;
-if (not defined $af) {
-    print "Using default exac allele frequency cutoff: 0.001\n";
-    $af_cutoff = 0.001;
-} else {
-    print "Using user-defined exac allele frequency cutoff: $af\n";
-    $af_cutoff = $af;
-}
+print "Using exac adjusted allele frequency cutoff: $af_cutoff\n";
 
 ## Create a hashes of passed and failed variants
 my %fail = ();
@@ -213,8 +224,8 @@ while(my $line = <$fh>) {
     ## Print the first line of the file + ExAc column heading to output file
     if($header eq "") {
         $header = join("\t",$line,"ExAC_adj_AF");
-        print PASS "$header\n";
-        print FAIL "$header\n";
+        print $out_pass "$header\n";
+        print $out_fail "$header\n";
         print "Printing output files\n";
     }
     ## Check that the first character is a valid chromosome, otherwise print to the removed output file
@@ -233,11 +244,11 @@ while(my $line = <$fh>) {
             my $var_string = join("\t",$vars[0],$vars[1],@vars[3..4]);
             ## Test to see if the variant is in the pass or fail hash and print to the appropriate file
             if($fail{$var_string}) {
-                print FAIL "$line\t$fail{$var_string}\n";
+                print $out_fail "$line\t$fail{$var_string}\n";
             }elsif($pass{$var_string}) {
-                print PASS "$line\t$pass{$var_string}\n";
+                print $out_pass "$line\t$pass{$var_string}\n";
             }else{
-                print PASS "$line\tNA\n";
+                print $out_pass "$line\tNA\n";
             }
         } else {
             if($line =~ /^chr/) {
@@ -265,5 +276,5 @@ while(my $line = <$fh>) {
 close $fh;
 #close VARIANTS;
 close EXAC;
-close PASS;
-close FAIL;
+close $out_pass;
+close $out_fail;
