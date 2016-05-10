@@ -21,10 +21,9 @@ my $usage=<<INFO;
         --variant_file      Variant file with first 5 col (chr,start,stop,ref,var). Maintains original columns with ExAC af column appended to the end of output files.
 
     Optional parameters
-        --af_cutoff         default=0.001   Variants with adjusted allele frequency <= set value are printed to PASS file. Variants with adjusted allele frequency > set 
-                                            value are printed to FAIL file.
-        --outfile_prefix    default="exac"  File name prefix for output files.
-
+        --af_cutoff         default=0.001       Variants with adjusted allele frequency <= set value are printed to PASS file. Variants with adjusted allele frequency > set 
+                                                value are printed to FAIL file.
+        --outfile_prefix    default="exac"      File name prefix for output files.
 
 INFO
 
@@ -181,7 +180,6 @@ while(my $line = <EXAC>){  ## read single line from the file
                 } else {
                     $AF_adj = sprintf("%.8f",$AC_adj[$i]/$AN_adj);
                 }
-#            print "$exac\t$AF_adj\n";
                 ## Assign 
                 if($AF_adj>$af_cutoff) {
                     $fail{$exac} = $AF_adj;
