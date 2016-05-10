@@ -21,11 +21,15 @@ GetOptions ('snv_min_vaf=f'=>\$VAF, 'snv_min_readcount=i'=>\$readcount, 'snv_min
 
 my $usage=<<INFO;
     Example usage:
-        PON_filtering.pl --readcount_file=/gscmnt/gc2547/mardiswilsonlab/kkrysiak/lymphoma/variant_files/lym_normal_filter/lym_normal_readcounts.tsv --outfile_prefix='test' --variant_file=/gscmnt/gc2547/mardiswilsonlab/kkrysiak/lymphoma/variant_files/All_Variants.tsv --snv_min_vaf=5 --snv_min_readcount=3 --snv_min_recurrence=5 --indel_min_vaf=2
+        PON_filtering.pl --readcount_file=/gscmnt/gc2547/mardiswilsonlab/kkrysiak/lymphoma/variant_files/lym_normal_filter/lym_normal_readcounts.tsv 
+        --outfile_prefix='test' --variant_file=/gscmnt/gc2547/mardiswilsonlab/kkrysiak/lymphoma/variant_files/All_Variants.tsv --snv_min_vaf=5 
+        --snv_min_readcount=3 --snv_min_recurrence=5 --indel_min_vaf=2
 
     Requires
-        --readcount_file        add-reacount output file with only normal readcount output
-        --variant_file          variant file with first 5 col (chr,start,stop,ref,var), additional columns will be retained
+        --readcount_file        add-reacount output file with ONLY normal readcount output. First 5 cols (chr,start,stop,ref,var) followed by ref_count, 
+                                var_count, VAF for each normal sample
+        --variant_file          Variant file with first 5 col (chr,start,stop,ref,var). Additional columns will be retained. All variants will be passed to
+                                pass or fail file. Last column will indicate PASS or # of recurrences in normal samples, if failed.
 
     Optional parameters
         --outfile_prefix        default="PON"   File name prefix for output files
@@ -42,37 +46,17 @@ INFO
 open my $norm, '<', $normals or die "Normal readcount file ($normals) not found.\n\n$usage";
 open my $var, '<', $variants or die "Variant file ($variants) not found.\n\n$usage";
 
-unless($VAF){
-    print "Using default SNV minimum VAF: 2.5\n";
-    $VAF = 2.5;
-}
-unless($readcount) {
-    print "Using default SNV minimum readcount cutoff: 3\n";
-    $readcount = 3;
-}
-unless($recurrence) {
-    print "Using default SNV minimum recurrence count: 5\n";
-    $recurrence = 5;
-}
-unless($indel_VAF) {
-    print "Using default indel minimum VAF: 2.5\n";
-    $indel_VAF = 2.5;
-}
-unless($indel_readcount) {
-    print "Using default indel minimum readcount: 2\n";
-    $indel_readcount = 2;
-}
-unless($indel_recurrence) {
-    print "Using default indel minimum recurrence count: 7\n";
-    $indel_recurrence = 7;
-}
+## Print parameters to user
+print "Using SNV minimum VAF: $VAF\n";
+print "Using SNV minimum readcount cutoff: $readcount\n";
+print "Using SNV minimum recurrence count: $recurrence\n";
+print "Using indel minimum VAF: $indel_VAF\n";
+print "Using indel minimum readcount: $indel_readcount\n";
+print "Using indel minimum recurrence count: $indel_recurrence\n";
 
 ## Create output files
 open my $out_pass, '>', join("", $prefix, "_PASS.tsv"); 
 open my $out_fail, '>', join("", $prefix, "_FAIL.tsv");
-
-#open(OUT, ">/gscmnt/gc2547/mardiswilsonlab/kkrysiak/lymphoma/variant_files/All_Variants.lym_pon_excluded.tsv");
-#open(OUT2, ">/gscmnt/gc2547/mardiswilsonlab/kkrysiak/lymphoma/variant_files/All_Variants.lym_pon.tsv");
 
 ## Create a hashes of passed and failed variants
 my %fail = ();
