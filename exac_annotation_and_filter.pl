@@ -222,7 +222,7 @@ while(my $line = <$fh>) {
         ## Create an array with the different columns of the line
         my @vars = split("\t", $line);
         ## Check that the chromosome, start, reference base, variant base are formatted as expected
-        if($vars[0] =~ /^(\d*|X|Y|MT|GL)$/ && $vars[1] =~ /^\d+$/ && $vars[3] =~ /(A|C|T|G|-|0)+/ && $vars[4] =~ /(A|C|T|G|-|0)+/) {
+        if($vars[0] =~ /^(\d*|X|Y|MT|GL\S+)$/ && $vars[1] =~ /^\d+$/ && $vars[3] =~ /(A|C|T|G|-|0)+/ && $vars[4] =~ /(A|C|T|G|-|0)+/) {
             ## Change - to 0 to designate indels
             if($vars[3] =~ /-/){
                 $vars[3] = 0;
