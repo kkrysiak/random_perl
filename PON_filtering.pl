@@ -3,8 +3,6 @@ use strict;
 use warnings;
 use Getopt::Long;
 
-
-## Declare cutoffs for SNVs
 my $VAF = 2.5;
 my $readcount = 3;
 my $recurrence = 5;
@@ -55,8 +53,8 @@ print "Using indel minimum readcount: $indel_readcount\n";
 print "Using indel minimum recurrence count: $indel_recurrence\n";
 
 ## Create output files
-open my $out_pass, '>', join("", $prefix, "_PASS.tsv"); 
-open my $out_fail, '>', join("", $prefix, "_FAIL.tsv");
+open my $out_pass, '>', join("", $prefix, ".pass.tsv"); 
+open my $out_fail, '>', join("", $prefix, ".fail.tsv");
 
 ## Create a hashes of passed and failed variants
 my %fail = ();
