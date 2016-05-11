@@ -5,30 +5,82 @@ use warnings;
 #### Open relavent input files
 ## Our variant file
 open(VARIANTS, "</gscmnt/gc2547/mardiswilsonlab/kkrysiak/Stat1/maf_filtering/Table_S1.MAF_noquote.tsv") or die "Variant file not found";
-## gz VCF file containing all ExAc variants
+#open(VARIANTS, "</gscmnt/gc2547/mardiswilsonlab/kkrysiak/Stat1/maf_filtering/test.tsv") or die "Test file not found";
+
+## gz VCF file containing all MGP variants
 open(MGP_SNP, "gunzip -c /gscmnt/gc2547/mardiswilsonlab/kkrysiak/sanger_MGP/mgp.v2.snps.annot.reformat.vcf.gz | ") or die "Can't open ExAc file";
 open(MGP_INDEL, "gunzip -c /gscmnt/gc2547/mardiswilsonlab/kkrysiak/sanger_MGP/mgp.v2.indels.annot.reformat.vcf.gz | ") or die "Can't open ExAc file";
 
 #### Create output files
-open(PASS, ">mgp_pass.tsv");
-open(FAIL, ">mgp_fail.tsv");
+open(PASS, ">/gscmnt/gc2547/mardiswilsonlab/kkrysiak/Stat1/maf_filtering/mgp_pass.tsv");
+open(FAIL, ">/gscmnt/gc2547/mardiswilsonlab/kkrysiak/Stat1/maf_filtering/mgp_fail.tsv");
 
 ## Declare QUAL cutoff to separate the file
-my $qual_cutoff = 999;
+my $qual_cutoff = 1;
 
-## Create a hashes of passed and failed variants
-my %fail = ();
-my %pass = ();
+## Initialize a hash of variants to be tested
+my %variants = ();
+## Initialize a hash of repeated variants to be tested
+my %rep_vars = ();
 
 ## Initialize a variable to track progress
 my $prog = "";
+## Initialize header variable
+my $header = "";
+
+## Read in variant file and assign it to a hash
+while(my $line = <VARIANTS>) {
+    chomp($line);
+    ## Print the first line of the file + QUAL heading to output file
+    if($header eq "") {
+        $header = join("\t",$line,"MGP_QUAL_Score");
+        print PASS "$header\n";
+        print FAIL "$header\tMGP_FILTER\n";
+        print "Reading in variant file\n";
+    }
+    ## Check that the first character is a valid chromosome, otherwise print to the removed output file
+    if($line =~ /^([0-9]|X|Y|M)/){
+        ## Create an array with the different columns of the line
+        my @vars = split("\t", $line);
+        ## Check that the chromosome, start, reference base, variant base are formatted as expected
+        if($vars[0] =~ /^(\d*|X|Y|MT)$/ && $vars[1] =~ /^\d+$/ && $vars[3] =~ /(A|C|T|G|-|0)+/ && $vars[4] =~ /(A|C|T|G|-|0)+/) {
+            ## Change - to 0 to designate indels
+            if($vars[3] =~ /-/){
+                $vars[3] = 0;
+            } elsif ($vars[4] =~ /-/){
+                $vars[4] = 0;
+            }
+            ## Create a new string with the approved chromosome, start, reference base, variant base
+            my $var_string = join("\t",$vars[0],$vars[1],@vars[3..4]);
+            ## Check if the variant is already a key in the hash
+            if($variants{$var_string}) {
+                push(@{$rep_vars{$var_string}}, $line);
+            } else {
+                ## assign new variant string as a key to the variant hash and the line to the value
+                $variants{$var_string} = $line;        
+            }
+        } else {
+            unless($line =~ /^chr/) {
+                # Print skipped lines
+                print "Variant formatting problem:\n$line\n";
+            }
+        }
+    } else {
+        unless($line =~ /^chr/) {
+            ## Print skipped lines
+            print "Variant formatting problem:\n$line\n";
+        }
+    }
+}
 
 ## Subroutine to extract the proper coordinates from the MGP files assign them to a pass or fail hash based on the qual cutoff
 sub mgpTest {
     my $line = shift;
     $prog = shift;
-    my $fail = shift;
-    my $pass = shift;
+    my $variants = shift;
+    ## %rep_vars is hash of arrays
+    my $rep_vars_ref = shift;  
+    my %rep_vars = %$rep_vars_ref;
 
     ## Skip lines starting with #
     if($line =~ /^\#/){
@@ -140,20 +192,72 @@ sub mgpTest {
 
                 ## Initialize and extract the qual variable
                 my $qual = sprintf("%d", $vars[5]);
-
-                ## Assign variants as passed or failed
-                if($qual<$qual_cutoff) {
-                    $$fail{$mgp} = $qual;
-                    if($mgp2 ne "") {
-                        $$fail{$mgp2} = $qual;
+                
+                ## Check if the MGP variant is in the tested list of variants
+                if($$variants{$mgp} || $$variants{$mgp2}) {
+                    ## Assign variants as passed or failed and remove them from the hashes after printing to the appropriate file
+                    if($vars[6] eq "PASS") {
+                        print FAIL "$$variants{$mgp}\t$qual\t$vars[6]\n";
+                        delete $$variants{$mgp};
+                        ## Print variants with repeat entries (2+ lines in the input variant file)
+                        if($rep_vars{$mgp}) {
+                            foreach my $r (@{$rep_vars{$mgp}}) {
+                                print FAIL "$r\t$qual\t$vars[6]\n";
+                            }
+                            delete $$rep_vars_ref{$mgp};
+                        }
+                        ## Repeat above for alterative representation of the variant if it exists
+                        if($$variants{$mgp2}) {
+                            print FAIL "$$variants{$mgp2}\t$qual\t$vars[6]\n";
+                            delete $$variants{$mgp2};
+                            if($rep_vars{$mgp2}) {
+                                foreach my $r (@{$rep_vars{$mgp2}}) {
+                                    print FAIL "$r\t$qual\t$vars[6]\n";
+                                }
+                                delete $$rep_vars_ref{$mgp2};
+                            }
+                        }
+                    } else { 
+                        if($qual >= $qual_cutoff) {
+                            print FAIL "$$variants{$mgp}\t$qual\t$vars[6]\n";
+                            delete $$variants{$mgp};
+                            if($rep_vars{$mgp}) {
+                                foreach my $r (@{$rep_vars{$mgp}}) {
+                                    print FAIL "$r\t$qual\t$vars[6]\n";
+                                }
+                                delete $$rep_vars_ref{$mgp};
+                            }
+                            if($$variants{$mgp2}) {
+                                print FAIL "$$variants{$mgp2}\t$qual\t$vars[6]\n";
+                                delete $$variants{$mgp2};
+                                if($rep_vars{$mgp2}) {
+                                    foreach my $r (@{$rep_vars{$mgp2}}) {
+                                        print FAIL "$r\t$qual\t$vars[6]\n";
+                                    }                                    
+                                    delete $$rep_vars_ref{$mgp2};
+                                }
+                            }
+                        } elsif($qual < $qual_cutoff) {
+                            print PASS "$$variants{$mgp}\t$qual\n";
+                            delete $$variants{$mgp};
+                            if($rep_vars{$mgp}) {
+                                foreach my $r (@{$rep_vars{$mgp}}) {
+                                    print PASS "$r\t$qual\n";
+                                }
+                                delete $$rep_vars_ref{$mgp};
+                            }
+                            if($$variants{$mgp2}) {
+                                print PASS "$$variants{$mgp2}\t$qual\n";
+                                delete $$variants{$mgp2};
+                                if($rep_vars{$mgp2}) {
+                                    foreach my $r (@{$rep_vars{$mgp2}}) {
+                                        print PASS "$r\t$qual\n";
+                                    }
+                                    delete $$rep_vars_ref{$mgp2};
+                                } 
+                            }
+                        }
                     }
-                } elsif($qual >= $qual_cutoff) {
-                    $$pass{$mgp} = $qual;
-                    if($mgp2 ne "") {
-                        $$pass{$mgp2} = $qual;
-                    }
-                } else {
-                    print "MGP quality score not valid, check formatting.\n";
                 }                        
                 $i++;        
             } 
@@ -164,65 +268,26 @@ sub mgpTest {
 }
 
 ## Iterate through the MGP SNP VCF file line by line
+print "Testing SNPs\n";
 while(my $line = <MGP_SNP>){  ## read single line from the file
     chomp($line);
-    mgpTest($line, $prog, \%fail, \%pass);
+    mgpTest($line, $prog, \%variants, \%rep_vars);
 }
 ## Iterate through the MGP indel VCF file line by line
-while(my $line = <MGP_INDEL>){  ## read single line from the file
-    chomp($line);
-    mgpTest($line, $prog, \%fail, \%pass);
+print "Testing indels\n";
+while(my $line2 = <MGP_INDEL>){  ## read single line from the file
+    chomp($line2);
+    mgpTest($line2, $prog, \%variants, \%rep_vars);
 }
 
-## Initialize header
-my $header = "";
-
-## Read in variant file
-while(my $line = <VARIANTS>) {
-    chomp($line);
-    ## Print the first line of the file + QUAL heading to output file
-    if($header eq "") {
-        $header = join("\t",$line,"MGP_QUAL_Score");
-        print PASS "$header\n";
-        print FAIL "$header\n";
-    }
-    ## Check that the first character is a valid chromosome, otherwise print to the removed output file
-    if($line =~ /^([0-9]|X|Y|M)/){
-        ## Create an array with the different columns of the line
-        my @vars = split("\t", $line);
-        ## Check that the chromosome, start, reference base, variant base are formatted as expected
-        if($vars[0] =~ /^(\d*|X|Y|MT)$/ && $vars[1] =~ /^\d+$/ && $vars[3] =~ /(A|C|T|G|-|0)+/ && $vars[4] =~ /(A|C|T|G|-|0)+/) {
-            ## Change - to 0 to designate indels
-            if($vars[3] =~ /-/){
-                $vars[3] = 0;
-            } elsif ($vars[4] =~ /-/){
-                $vars[4] = 0;
-            }
-            ## Create a new string with the approved chromosome, start, reference base, variant base
-            my $var_string = join("\t",$vars[0],$vars[1],@vars[3..4]);
-            ## Test to see if the variant is in the pass or fail hash and print to the appropriate file
-            if($fail{$var_string}) {
-                print FAIL "$line\t$fail{$var_string}\n";
-            }elsif($pass{$var_string}) {
-                print PASS "$line\t$pass{$var_string}\n";
-            }else{
-                print PASS "$line\tNA\n";
-            }
-        } else {
-            unless($line =~ /^chr/) {
-                ## Print skipped lines
-                print "Variant formatting problem:\n$line\n";
-            }
-        }
-    } else {
-        unless($line =~ /^chr/) {
-            ## Print skipped lines
-            print "Variant formatting problem:\n$line\n";
-        }
+print "Printing remaining variants\n";
+print PASS "$variants{$_}\tNA\n" for (keys %variants);
+## Print remaining repeated variants
+foreach my $i (keys %rep_vars) {
+    foreach my $n (@{$rep_vars{$i}}) {
+        print PASS "$n\tNA\n";
     }
 }
-
-
 
 ## Close files
 close VARIANTS;
