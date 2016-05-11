@@ -12,8 +12,8 @@ open(MGP_SNP, "gunzip -c /gscmnt/gc2547/mardiswilsonlab/kkrysiak/sanger_MGP/mgp.
 open(MGP_INDEL, "gunzip -c /gscmnt/gc2547/mardiswilsonlab/kkrysiak/sanger_MGP/mgp.v2.indels.annot.reformat.vcf.gz | ") or die "Can't open ExAc file";
 
 #### Create output files
-open(PASS, ">/gscmnt/gc2547/mardiswilsonlab/kkrysiak/Stat1/maf_filtering/mgp_pass.tsv");
-open(FAIL, ">/gscmnt/gc2547/mardiswilsonlab/kkrysiak/Stat1/maf_filtering/mgp_fail.tsv");
+open(PASS, ">mgp_pass.tsv");
+open(FAIL, ">mgp_fail.tsv");
 
 ## Declare QUAL cutoff to separate the file
 my $qual_cutoff = 1;
