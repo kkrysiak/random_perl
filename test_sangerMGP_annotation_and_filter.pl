@@ -16,7 +16,7 @@ open(PASS, ">/gscmnt/gc2547/mardiswilsonlab/kkrysiak/Stat1/maf_filtering/mgp_pas
 open(FAIL, ">/gscmnt/gc2547/mardiswilsonlab/kkrysiak/Stat1/maf_filtering/mgp_fail.tsv");
 
 ## Declare QUAL cutoff to separate the file
-my $qual_cutoff = 999;
+my $qual_cutoff = 1;
 
 ## Initialize a hash of variants to be tested
 my %variants = ();
@@ -204,7 +204,7 @@ sub mgpTest {
                             foreach my $r (@{$rep_vars{$mgp}}) {
                                 print FAIL "$r\t$qual\t$vars[6]\n";
                             }
-                            delete $rep_vars{$mgp};
+                            delete $$rep_vars_ref{$mgp};
                         }
                         ## Repeat above for alterative representation of the variant if it exists
                         if($$variants{$mgp2}) {
@@ -214,7 +214,7 @@ sub mgpTest {
                                 foreach my $r (@{$rep_vars{$mgp2}}) {
                                     print FAIL "$r\t$qual\t$vars[6]\n";
                                 }
-                                delete $rep_vars{$mgp2};
+                                delete $$rep_vars_ref{$mgp2};
                             }
                         }
                     } else { 
@@ -225,7 +225,7 @@ sub mgpTest {
                                 foreach my $r (@{$rep_vars{$mgp}}) {
                                     print FAIL "$r\t$qual\t$vars[6]\n";
                                 }
-                                delete $rep_vars{$mgp};
+                                delete $$rep_vars_ref{$mgp};
                             }
                             if($$variants{$mgp2}) {
                                 print FAIL "$$variants{$mgp2}\t$qual\t$vars[6]\n";
@@ -234,7 +234,7 @@ sub mgpTest {
                                     foreach my $r (@{$rep_vars{$mgp2}}) {
                                         print FAIL "$r\t$qual\t$vars[6]\n";
                                     }                                    
-                                    delete $rep_vars{$mgp2};
+                                    delete $$rep_vars_ref{$mgp2};
                                 }
                             }
                         } elsif($qual < $qual_cutoff) {
@@ -242,18 +242,18 @@ sub mgpTest {
                             delete $$variants{$mgp};
                             if($rep_vars{$mgp}) {
                                 foreach my $r (@{$rep_vars{$mgp}}) {
-                                    print PASS "$r\t$qual\t$vars[6]\n";
+                                    print PASS "$r\t$qual\n";
                                 }
-                                delete $rep_vars{$mgp};
+                                delete $$rep_vars_ref{$mgp};
                             }
                             if($$variants{$mgp2}) {
-                                print PASS "$$variants{$mgp2}\t$qual\t$vars[6]\n";
+                                print PASS "$$variants{$mgp2}\t$qual\n";
                                 delete $$variants{$mgp2};
                                 if($rep_vars{$mgp2}) {
                                     foreach my $r (@{$rep_vars{$mgp2}}) {
-                                        print PASS "$r\t$qual\t$vars[6]\n";
+                                        print PASS "$r\t$qual\n";
                                     }
-                                    delete $rep_vars{$mgp2};
+                                    delete $$rep_vars_ref{$mgp2};
                                 } 
                             }
                         }
