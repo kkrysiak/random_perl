@@ -14,11 +14,9 @@ Annotate variant file with ExAC adjusted allele frequencies and separate into pa
 
 *Input:*
 
-    Modified MGI annotation format file with first 5 columns = chr/start/stop/ref/var (User input), additional columns are ignored but retained
-    
-    Accepts user-defined exac cutoff or uses default 0.001
-    
-    ExAC release 2 VCF file
+    - Modified MGI annotation format file with first 5 columns = chr/start/stop/ref/var (User input), additional columns are ignored but retained
+    - Accepts user-defined exac cutoff or uses default 0.001
+    - ExAC release 2 VCF file
 
 *Output:*
     
