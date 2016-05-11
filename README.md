@@ -125,7 +125,7 @@ Apply an ExAC allele frequency filter to a variant file
 
 *Output:* Hard coded, placed in the current working directory
     
-    All_Variants.lym_pon.exac.tsv           Variants that pass the ExAC allele frequency cutoff 
+    - All_Variants.lym_pon.exac.tsv           Variants that pass the ExAC allele frequency cutoff 
     
-    All_Variants.lym_pon.exac_excluded.tsv  Variants that fail the ExAC allele frequency cutoff
+    - All_Variants.lym_pon.exac_excluded.tsv  Variants that fail the ExAC allele frequency cutoff
 
