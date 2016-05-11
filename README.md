@@ -33,9 +33,8 @@ Filter variants using panel of normal BAM files
 - SNV/indel cutoffs are distinct, defaults set for each
 
 *Input:*
-    
-    Variant file with first 5 columns = chr/start/stop/ref/var, additional columns retained but ignored
-    
+
+    Variant file with first 5 columns = chr/start/stop/ref/var, additional columns retained but ignored 
     Panel of normals add-readcount output file with first 5 columns as above followed by 3 columns (ref/alt/VAF) for each normal to be used in the filter
 *Output:*
     
