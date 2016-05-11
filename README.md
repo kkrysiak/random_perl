@@ -37,6 +37,7 @@ Filter variants using panel of normal BAM files
  
 
 **User beware - Hard coded scripts**
+====================================
 sangerMGP_annotation_and_filter.pl
 ----------------------------------
 Split mouse variants by their presence in the sanger mouse genomes project
@@ -45,7 +46,7 @@ Split mouse variants by their presence in the sanger mouse genomes project
     Modified MGI annotation format file with the first 5 columns = chr/start/stop/ref/var, specifically variants from the Stat1 project
     Sanger MGP Release version 2 (mm9) SNPs and indel files (REL-1211)
 *Output* Hard coded, placed in the current working directory
-    mgp_pass        All variants not in the MGP files or MGP variants with a quality score below a minimum cutoff + 1 col of MGP quality score
+    mgp_pass        All variants not in the MGP files or MGP variants with a quality score below a minimum (hard-coded at 1) cutoff + 1 col of MGP quality score
     mgp_fail        All variants that fail + MGP quality and MGP filter columns added on the end
 
 
