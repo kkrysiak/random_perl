@@ -21,7 +21,8 @@ Annotate variant file with ExAC adjusted allele frequencies and separate into pa
 
 *Output:*
     
-    2 files containing all original variants and annotation/extra columns + ExAC adjusted allele frequency column split into passed and failed variants
+    2 files containing all original variants and annotation/extra columns + ExAC adjusted allele frequency column split 
+        into passed and failed variants
 
 
 PON_filtering.pl
@@ -34,7 +35,8 @@ Filter variants using panel of normal BAM files
 *Input:*
 
     Variant file with first 5 columns = chr/start/stop/ref/var, additional columns retained but ignored 
-    Panel of normals add-readcount output file with first 5 columns as above followed by 3 columns (ref/alt/VAF) for each normal to be used in the filter
+    Panel of normals add-readcount output file with first 5 columns as above followed by 3 columns (ref/alt/VAF) for 
+        each normal to be used in the filter
 *Output:*
     
     Original input variants split into passed and failed + final column with normal recurrence count or PASS indicated
@@ -50,13 +52,13 @@ Split mouse variants by their presence in the sanger mouse genomes project
 
 *Input:* Hard coded input
 
-    Modified MGI annotation format file with the first 5 columns = chr/start/stop/ref/var, specifically variants from the Stat1 project
-
+    Modified MGI annotation format file with the first 5 columns = chr/start/stop/ref/var, specifically variants from 
+        the Stat1 project
     Sanger MGP Release version 2 (mm9) SNPs and indel files (REL-1211)
 *Output* Hard coded, placed in the current working directory
 
-    mgp_pass        All variants not in the MGP files or MGP variants with a quality score below a minimum (hard-coded at 1) cutoff + 1 col of MGP quality score
-
+    mgp_pass        All variants not in the MGP files or MGP variants with a quality score below a minimum (hard-coded 
+                    at 1) cutoff + 1 col of MGP quality score
     mgp_fail        All variants that fail + MGP quality and MGP filter columns added on the end
 
 
@@ -72,16 +74,15 @@ Apply a panel of lymphoma normals filter to follicular lymphoma variants
 
 *Input:* Hard coded input
 
-    Modified MGI annotation format variant file with first 5 columns = chr/start/stop/ref/var, specifically variants from the follicular lymphoma project
-
-    Panel of normals add-readcount output file with first 5 columns as above followed by 3 columns (ref/alt/VAF) for each normal to be used in the filter,
-        specifically variants from the follicular lymphoma project
+    Modified MGI annotation format variant file with first 5 columns = chr/start/stop/ref/var, specifically variants 
+        from the follicular lymphoma project
+    Panel of normals add-readcount output file with first 5 columns as above followed by 3 columns (ref/alt/VAF) for 
+        each normal to be used in the filter, specifically variants from the follicular lymphoma project
 *Output:* Hard coded, placed in the current working directory
 
     All_Variants.lym_pon.tsv                Variants that pass the VAF/Readcount/Recurrence cutoffs with new last column
-
-    All_Variants.lym_pon_excluded.tsv       Variants that fail the VAF/Readcount/Recurrence cutoffs with new last column providing the number of normals 
-                                            above the readcount/VAF cutoff
+    All_Variants.lym_pon_excluded.tsv       Variants that fail the VAF/Readcount/Recurrence cutoffs with new last column 
+                                            providing the number of normals above the readcount/VAF cutoff
 
 
 exac_filtering_lymphoma.pl
@@ -95,16 +96,19 @@ Annotate my input list of lymphoma variants with the ExAC allele frequency
 
 *Input:* Hard coded input
     
-    Modified MGI annotation format file with first 5 columns = chr/start/stop/ref/var, specifically variants from the follicular lymphoma project
-
+    Modified MGI annotation format file with first 5 columns = chr/start/stop/ref/var, specifically variants from the 
+        follicular lymphoma project
     ExAC release 2 VCF file, GRCh37
 *Output:* Hard coded, placed in the current working directory
 
-    exac_matched_variants_output.tsv                Original input file + 1 column of ExAC adjusted allele frequencies (AC_adj/AN_adj)
+    exac_matched_variants_output.tsv                Original input file + 1 column of ExAC adjusted allele frequencies 
+                                                    (AC_adj/AN_adj)
     
-    exac_matched_variants_output_fullannot.tsv      Original input file + 12 columns of ExAC data for additional review (chr,start,reference allele,
-                                                    alt allele, allele frequency, variant allele count (AC), adjusted allele count (AC_Adj), total
-                                                    allele count (AN), adjusted total allele count (AN_Adj), quality score, filter, info field
+    exac_matched_variants_output_fullannot.tsv      Original input file + 12 columns of ExAC data for additional review 
+                                                    (chr,start,reference allele, alt allele, allele frequency, variant 
+                                                    allele count (AC), adjusted allele count (AC_Adj), total allele count 
+                                                    (AN), adjusted total allele count (AN_Adj), quality score, filter, 
+                                                    info field
 
 remove_exac_variants.pl
 -----------------------
@@ -115,10 +119,9 @@ Apply an ExAC allele frequency filter to a variant file
 
 *Input:* Hard coded input
     
-    Modified MGI annotation format file with first 5 columns = chr/start/stop/ref/var, currently exac annotated follicular lymphoma file
-    
-    Must have ExAC_adj_AF column to filter by
-    
+    Modified MGI annotation format file with first 5 columns = chr/start/stop/ref/var, currently exac annotated follicular 
+        lymphoma file
+    Requires ExAC_adj_AF column to filter by
     Output file from exac_filtering_lymphoma.pl (exac_matched_variants_output.tsv)
 
 *Output:* Hard coded, placed in the current working directory
