@@ -205,6 +205,11 @@ while(my $line = <EXAC>){  ## read single line from the file
 ## Initialize header
 my $header = "";
 
+## Initialize counters
+my $excluded = 0;
+my $p = 0;
+my $f = 0;
+
 ## Reset progress variable to continue to print progress to user
 $prog = "";
 
@@ -216,7 +221,7 @@ while(my $line = <$fh>) {
         $header = join("\t",$line,"ExAC_adj_AF");
         print $out_pass "$header\n";
         print $out_fail "$header\n";
-        print "Printing output files\n";
+        print "\nPrinting output files\n";
     }
     ## Check that the first character is a valid chromosome, otherwise print to the removed output file
     elsif($line =~ /^([0-9]|X|Y|M|GL)/){
@@ -235,10 +240,13 @@ while(my $line = <$fh>) {
             ## Test to see if the variant is in the pass or fail hash and print to the appropriate file
             if($fail{$var_string}) {
                 print $out_fail "$line\t$fail{$var_string}\n";
+                $f++;
             }elsif($pass{$var_string}) {
                 print $out_pass "$line\t$pass{$var_string}\n";
+                $p++;
             }else{
                 print $out_pass "$line\tNA\n";
+                $p++;
             }
         } else {
             if($line =~ /^chr/) {
@@ -246,7 +254,8 @@ while(my $line = <$fh>) {
                 die "File format not supported. Please remove chr prefix from variant file.\n";
             } else {
                 ## Print skipped lines
-                die "Variant formatting problem:\n$line\n";
+                print "Variant formatting problem, excluding variant:\n$line\n";
+                $excluded++;
             }
         }
     } else {
@@ -260,7 +269,7 @@ while(my $line = <$fh>) {
     }
 }
 
-
+print "\n$p variants passed.\n$f variants failed.\n$excluded variants were excluded because of formatting.\n\n";
 
 ## Close files
 close $fh;
