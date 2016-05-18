@@ -27,7 +27,7 @@ my $usage=<<INFO;
         --readcount_file        add-reacount output file with ONLY normal readcount output. First 5 cols (chr,start,stop,ref,var) followed by ref_count, 
                                 var_count, VAF for each normal sample
         --variant_file          Variant file with first 5 col (chr,start,stop,ref,var). Additional columns will be retained. All variants will be passed to
-                                pass or fail file. Last column will indicate PASS or # of recurrences in normal samples, if failed.
+                                pass or fail file. Last column will indicate # of recurrences in normal samples or NA if not found in readcount file.
 
     Optional parameters
         --outfile_prefix        default="PON"   File name prefix for output files
@@ -86,7 +86,7 @@ while(my $line = <$norm>) {
                 if($indel_count>=$indel_recurrence){
                     $fail{$variant} = $indel_count;
                 } else {
-                    $pass{$variant} = "PASSED";
+                    $pass{$variant} = $indel_count;
                 }
             ## Check if the variant is a SNV
             } elsif($var[3] =~ /^(A|C|T|G)$/ && $var[4] =~ /^(A|C|T|G)$/) {
@@ -100,7 +100,7 @@ while(my $line = <$norm>) {
                 if($count>=$recurrence){
                     $fail{$variant} = $count;
                 } else {
-                    $pass{$variant} = "PASSED";
+                    $pass{$variant} = $count;
                 }
             } else {
                 print "Variant format didn't match. Check the following is as expected:\n$variant\n";
@@ -109,34 +109,53 @@ while(my $line = <$norm>) {
     }
 }
 
+## Initialize counters
 my $row = 0;
+my $passed = 0;
+my $failed = 0;
+my $unexpected = 0;
+my $skipped = 0;
 
 while(my $line2 = <$var>) {
     chomp($line2);
     $row+=1;
     if($row==1){
-        print $out_fail "$line2\tCount\n";
-        print $out_pass "$line2\n";
+        print $out_fail "$line2\tnorm_recurrence_count\n";
+        print $out_pass "$line2\tnorm_recurrence_count\n";
     } else {
         ## Create an array with the different columns of the line
         my @vars = split("\t", $line2);
         ## Check that the chromosome, start, reference base, variant base are formatted as expected
-        if($vars[0] =~ /^(\d*|X|Y|MT)$/ && $vars[1] =~ /^\d+$/ && $vars[2] =~ /^\d+$/ && $vars[3] =~ /(A|C|T|G|-|0)+/ && $vars[4] =~ /(A|C|T|G|-|0)+/) {
+        if($vars[0] =~ /^(\d*|X|Y|MT|GL\S+)$/ && $vars[1] =~ /^\d+$/ && $vars[2] =~ /^\d+$/ && $vars[3] =~ /(A|C|T|G|-|0)+/ && $vars[4] =~ /(A|C|T|G|-|0)+/) {
             ## Create a new string with the approved chromosome, start, reference base, variant base
             my $var_string = join("\t",@vars[0..4]);
             if (defined $fail{$var_string}) {
                 print $out_fail "$line2\t$fail{$var_string}\n";
+                $failed++;
             } elsif(defined $pass{$var_string}) {
-                print $out_pass "$line2\n";
+                print $out_pass "$line2\t$pass{$var_string}\n";
+                $passed++;
             } else {
-                print "Variant not found.\n$var_string\n";
+                #print "\nWARNING: Variant not found in readcount file. Variant passed by default.\n$var_string\n";
+                $unexpected++;
+                print $out_pass "$line2\tNA\n";
             }
         } else {
-            print "$line2\nCheck variant file formatting, indel Chr/Stop/Start/Ref/Var not properly formatted\n";
+            print "\nWARNING: Check variant file formatting, chr/stop/start/ref/var not properly formatted. Variant skipped.\n$line2\n";
+            $skipped++;
         }
     }
 }
 
+my $total = $passed + $unexpected;
+
+print "\n$total passed variants\n$failed failed variants\n";
+if($unexpected>0){
+    print "$unexpected variants not found in normal readcount file - Passed by default\n";
+}
+if($skipped>0){
+    print "$skipped variants skipped (not in output files) due to unsupported variant formatting\n";
+}
 
 ## Close files
 close $norm;
