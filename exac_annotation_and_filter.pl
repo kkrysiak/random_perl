@@ -39,7 +39,7 @@ open my $out_pass, '>', join("",$prefix,".pass.tsv");
 open my $out_fail, '>', join("",$prefix,".fail.tsv");
 
 ## Use user-defined or set default exac allele frequency cutoff to separate the file
-print "Using exac adjusted allele frequency cutoff: $af_cutoff\n";
+print "\nUsing exac adjusted allele frequency cutoff: $af_cutoff\n";
 
 ## Create a hashes of passed and failed variants
 my %fail = ();
