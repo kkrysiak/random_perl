@@ -251,20 +251,20 @@ while(my $line = <$fh>) {
         } else {
             if($line =~ /^chr/) {
                 ## Print warning
-                die "File format not supported. Please remove chr prefix from variant file.\n";
+                die "ERROR: variant file format not supported. Please remove chr prefix from variant file. Exiting.\n";
             } else {
                 ## Print skipped lines
-                print "Variant formatting problem, excluding variant:\n$line\n";
+                print "WARNING: Variant formatting problem, excluding variant:\n$line\n";
                 $excluded++;
             }
         }
     } else {
         if($line =~ /^chr/) {
             ## Print warning
-            die "File format not supported. Please remove chr prefix from variant file.\n";
+            die "ERROR: variant file format not supported. Please remove chr prefix from variant file. Exiting.\n";
         } else {
             ## Print skipped lines
-            die "Variant formatting problem:\n$line\n";
+            die "ERROR: unexpected variant formatting. Only human chromosomes supported (1-22|X|Y|MT|GL*)\n$line\nExiting\n";
         }
     }
 }
