@@ -16,6 +16,7 @@ Annotate variant file with ExAC adjusted allele frequencies and separate into pa
 
     Modified MGI annotation format file with first 5 columns = chr/start/stop/ref/var (User input), additional columns 
         are ignored but retained
+    Only human chromosomes supported (X|Y|1-22|MT|GL*)
     Accepts user-defined exac cutoff or uses default 0.001
     ExAC release 2 VCF file
 
@@ -39,7 +40,8 @@ Filter variants using panel of normal BAM files
         each normal to be used in the filter
 *Output:*
     
-    Original input variants split into passed and failed + final column with normal recurrence count or PASS indicated
+    Original input variants split into passed and failed + final column with normal recurrence count or NA if absent
+        from readcount file
 
 
  
