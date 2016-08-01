@@ -18,7 +18,7 @@ my $usage=<<INFO;
         exac_annotation_and_filter.pl --variant_file=/gscmnt/gc2547/mardiswilsonlab/kkrysiak/lymphoma/variant_files/All_Variants.tsv --af_cutoff=0.001 --outfile_prefix='testing'
     
     Requires
-        --variant_file      Variant file with first 5 col (chr,start,stop,ref,var). Maintains original columns with ExAC af column appended to the end of output files.
+        --variant_file      1-based variant file with first 5 col (chr,start,stop,ref,var). Maintains original columns with ExAC af column appended to the end of output files.
 
     Optional parameters
         --af_cutoff         default=0.001       Variants with adjusted allele frequency <= set value are printed to PASS file. Variants with adjusted allele frequency > set 
