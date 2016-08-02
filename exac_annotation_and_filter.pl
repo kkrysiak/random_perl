@@ -18,7 +18,7 @@ my $usage=<<INFO;
         exac_annotation_and_filter.pl --variant_file=/gscmnt/gc2547/mardiswilsonlab/kkrysiak/lymphoma/variant_files/All_Variants.tsv --af_cutoff=0.001 --outfile_prefix='testing'
     
     Requires
-        --variant_file      1-based variant file with first 5 col (chr,start,stop,ref,var). Maintains original columns with ExAC af column appended to the end of output files.
+        --variant_file      1-based variant file with first 5 col (chr,start,stop,ref,var) and a header row. Maintains original columns with ExAC af column appended to the end of output files.
 
     Optional parameters
         --af_cutoff         default=0.001       Variants with adjusted allele frequency <= set value are printed to PASS file. Variants with adjusted allele frequency > set 
@@ -219,9 +219,14 @@ while(my $line = <$fh>) {
     ## Print the first line of the file + ExAc column heading to output file
     if($header eq "") {
         $header = join("\t",$line,"ExAC_adj_AF");
-        print $out_pass "$header\n";
-        print $out_fail "$header\n";
-        print "\nPrinting output files\n";
+        ## Check if the first line is actually a header
+        if($line =~ /^([1-22]|X|Y|MT|GL\S+)/) {
+            die "\nERROR: Header expected but chromosome name in first line/column. Check input variant file formatting.\n"
+        } else { 
+            print $out_pass "$header\n";
+            print $out_fail "$header\n";
+            print "\nPrinting output files\n";
+        }
     }
     ## Check that the first character is a valid chromosome, otherwise print to the removed output file
     elsif($line =~ /^([0-9]|X|Y|M|GL)/){
