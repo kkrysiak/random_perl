@@ -20,13 +20,16 @@ open my $sample_list, '<', '/gscmnt/gc2547/mardiswilsonlab/kkrysiak/lymphoma_gro
     chomp(my @samples = <$sample_list>);
 close $sample_list;
 
-my $file = join("",$dirname,$samples[0],'/snvs.indels.annotated');
-#my $file = '/gscmnt/gc2547/mardiswilsonlab/kkrysiak/lymphoma_group2/collect_variants/H_ML-1017096/snvs.indels.annotated';
-open my $io, "<", $file or die "$file: $!";
+foreach my $s (@samples) {
+    my $file = join("",$dirname,$samples[$s],'/snvs.indels.annotated');
+    #my $file = '/gscmnt/gc2547/mardiswilsonlab/kkrysiak/lymphoma_group2/collect_variants/H_ML-1017096/snvs.indels.annotated';
+    open my $io, "<", $file or die "$file: $!";
 
-my $header = $tsv->getline ($io);
-print join("-", @$header), "\n\n";
+    my $header = $tsv->getline ($io);
+    print join("-", @$header), "\n\n";
 
-while (my $row = $tsv->getline ($io)) {
-    print join("-", @$row), "\n";
+    while (my $row = $tsv->getline ($io)) {
+        print join("-", @$row), "\n";
+    }
+    print "\n\n\n\n\n\n\n\n$samples[$s]\n\n\n\n\n\n\n\n";
 }
