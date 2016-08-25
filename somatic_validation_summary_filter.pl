@@ -36,14 +36,11 @@ my $tsv = Text::CSV_XS->new ({
 #open my $sample_list, '<', '/gscmnt/gc2547/mardiswilsonlab/kkrysiak/lymphoma_group2/collect_variants/sample_list_f49450ad26db40e1b065b7a0a79d85e2.txt';
 open my $sample_fh, '<', $sample_list or die "Sample list ($sample_list) not found.\n";
 chomp(my @samples = <$sample_fh>);
-#my $samp = <$sample_fh>;
-#my @samples = split("\t",$samp);
 close $sample_fh;
 
 ## Define trv types to include
 my @trv_keep = ("3_prime_untranslated_region","5_prime_untranslated_region","frame_shift_del","frame_shift_ins","in_frame_del","missense","nonsense","nonstop","splice_site","splice_site_del","splice_site_ins","in_frame_ins"); 
             ###### Keep RNA??
-
 
 ## Get the variant file header into an array
 #open my $header_file, '<', "/gscmnt/gc2547/mardiswilsonlab/kkrysiak/lymphoma_group2/collect_variants/header.txt";
@@ -53,7 +50,6 @@ chomp($header_line);
 my @header = split(/\s+/, $header_line);
 print "$header[0]\t$header[1]\t$header[12]\n";
 close $header_fh;
-
 
 ## Create output files
 open my $all, '>', join("/",$outdir,join("",$outpre,".tsv"));
@@ -65,7 +61,7 @@ print $coding join("\t", @header), "sample\n";
 
 ## Iterate through each file in the directory
 foreach my $s (@samples) {
-    my $file = join("",$dirname,$samples['$s'],'/snvs.indels.annotated');
+    my $file = join("",$dirname,$s,'/snvs.indels.annotated');
     #my $file = '/gscmnt/gc2547/mardiswilsonlab/kkrysiak/lymphoma_group2/collect_variants/H_ML-1017096/snvs.indels.annotated';
     open my $io, "<", $file or die "$file: $!";
  
@@ -76,14 +72,14 @@ foreach my $s (@samples) {
         foreach my $g (@header) { 
             print $all "$row->{$g}\t";
         }
-        print $all "$samples['$s']\n";
+        print $all "$s\n";
         ## Check if the trv type indicates the variant should be kept
         my $trv = $row->{trv_type};
         if( grep(/$trv/, @trv_keep) ) {    
             foreach my $h (@header) { 
                 print $coding "$row->{$h}\t";
             }
-            print $coding "$samples['$s']\n";
+            print $coding "$s\n";
         }
     }
 }
