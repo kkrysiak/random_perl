@@ -41,6 +41,8 @@ close $sample_fh;
 ## Define trv types to include
 my @trv_keep = ("3_prime_untranslated_region","5_prime_untranslated_region","frame_shift_del","frame_shift_ins","in_frame_del","missense","nonsense","nonstop","splice_site","splice_site_del","splice_site_ins","in_frame_ins"); 
             ###### Keep RNA??
+## Define transcript errors to allow
+my @trans_keep = ("no_errors","-");
 
 ## Get the variant file header into an array
 #open my $header_file, '<', "/gscmnt/gc2547/mardiswilsonlab/kkrysiak/lymphoma_group2/collect_variants/header.txt";
@@ -48,15 +50,16 @@ open my $header_fh, '<', $header_file or die "Header file ($header_file) not fou
 my $header_line = <$header_fh>;
 chomp($header_line);
 my @header = split(/\s+/, $header_line);
-print "$header[0]\t$header[1]\t$header[12]\n";
 close $header_fh;
 
 ## Create output files
 open my $all, '>', join("/",$outdir,join("",$outpre,".tsv"));
-open my $coding, '>', join("/",$outdir,join("",$outpre,".coding.tsv"));
+open my $trans, '>', join("/",$outdir,join("",$outpre,".no_error.tsv"));
+open my $coding, '>', join("/",$outdir,join("",$outpre,".no_error.coding.tsv"));
 
 ## Print headers
 print $all join("\t", @header), "sample\n";
+print $trans join("\t", @header), "sample\n";
 print $coding join("\t", @header), "sample\n";
 
 ## Iterate through each file in the directory
@@ -73,6 +76,16 @@ foreach my $s (@samples) {
             print $all "$row->{$g}\t";
         }
         print $all "$s\n";
+        
+        ## Remove variants with transcript errors
+        my $tr_error = $row->{transcript_error};
+        if( grep(/$tr_error/, @trans_keep) ) {
+            foreach my $h (@header) {
+                print $trans "$row->{$h}\t";
+            }
+            print $trans "$s\n";
+        }
+
         ## Check if the trv type indicates the variant should be kept
         my $trv = $row->{trv_type};
         if( grep(/$trv/, @trv_keep) ) {    
@@ -83,3 +96,7 @@ foreach my $s (@samples) {
         }
     }
 }
+
+close $all;
+close $trans;
+close $all;
