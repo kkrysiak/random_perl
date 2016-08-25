@@ -38,12 +38,16 @@ open my $sample_fh, '<', $sample_list or die "Sample list ($sample_list) not fou
 chomp(my @samples = <$sample_fh>);
 close $sample_fh;
 
+######### Define variables to keep
+## Define chromosomes to keep
+my @chr_keep = (1..22,"X","Y");
+## Define transcript errors to allow
+my @trans_keep = ("no_errors","-");
 ## Define trv types to include
 my @trv_keep = ("3_prime_untranslated_region","5_prime_untranslated_region","frame_shift_del","frame_shift_ins","in_frame_del","missense","nonsense","nonstop","splice_site","splice_site_del","splice_site_ins","in_frame_ins"); 
             ###### Keep RNA??
-## Define transcript errors to allow
-my @trans_keep = ("no_errors","-");
 
+######### Filter
 ## Get the variant file header into an array
 #open my $header_file, '<', "/gscmnt/gc2547/mardiswilsonlab/kkrysiak/lymphoma_group2/collect_variants/header.txt";
 open my $header_fh, '<', $header_file or die "Header file ($header_file) not found.\n";
@@ -54,11 +58,13 @@ close $header_fh;
 
 ## Create output files
 open my $all, '>', join("/",$outdir,join("",$outpre,".tsv"));
-open my $trans, '>', join("/",$outdir,join("",$outpre,".no_error.tsv"));
-open my $coding, '>', join("/",$outdir,join("",$outpre,".no_error.coding.tsv"));
+open my $chr, '>', join("/",$outdir,join("",$outpre,".chr.tsv"));
+open my $trans, '>', join("/",$outdir,join("",$outpre,".chr.no_error.tsv"));
+open my $coding, '>', join("/",$outdir,join("",$outpre,".chr.no_error.coding.tsv"));
 
 ## Print headers
 print $all join("\t", @header), "sample\n";
+print $chr join("\t", @header), "sample\n";
 print $trans join("\t", @header), "sample\n";
 print $coding join("\t", @header), "sample\n";
 
@@ -77,6 +83,15 @@ foreach my $s (@samples) {
         }
         print $all "$s\n";
         
+        ## Remove unwanted chromosomes
+        my $chrs = $row->{chromosome_name};
+        if( grep(/$chrs/, @chr_keep) ) {
+            foreach my $h (@header) {
+                print $chr "$row->{$h}\t";
+            }
+            print $chr "$s\n";
+        }
+
         ## Remove variants with transcript errors
         my $tr_error = $row->{transcript_error};
         if( grep(/$tr_error/, @trans_keep) ) {
@@ -98,5 +113,6 @@ foreach my $s (@samples) {
 }
 
 close $all;
+close $chr;
 close $trans;
 close $all;
