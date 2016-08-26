@@ -119,23 +119,23 @@ foreach my $s (@samples) {
                     }
                     print $cov "$s\n";
 
-                    ## Check if the variant is tier1
+                    ## Check if the variant is in tiers to keep list
                     my $tier = $row->{tier};
                     if( grep(/$tier/, @tiers) ) {
                         foreach my $h (@header) { 
                             print $tier_file "$row->{$h}\t";
                         }
                         print $tier_file "$s\n";
-                    #}
 
-                    ## Check if the trv type indicates the variant should be kept
-                    my $trv = $row->{trv_type};
-                    if( grep(/$trv/, @trv_keep) ) {    
-                        foreach my $h (@header) { 
-                            print $coding "$row->{$h}\t";
+                        ## Check if the trv type indicates the variant should be kept
+                        my $trv = $row->{trv_type};
+                        if( grep(/$trv/, @trv_keep) ) {    
+                            foreach my $h (@header) { 
+                                print $coding "$row->{$h}\t";
+                            }
+                            print $coding "$s\n";
                         }
-                        print $coding "$s\n";
-                    }}
+                    }
                 }
             }
         }
