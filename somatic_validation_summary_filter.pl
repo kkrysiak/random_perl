@@ -47,6 +47,8 @@ my @trans_keep = ("no_errors","-");
 my $min_cov = 25;
 my $min_var = 4;
 my $min_vaf = 5;
+## Define tiers to keep
+my @tiers = ("tier1");
 ## Define trv types to include
 my @trv_keep = ("3_prime_untranslated_region","5_prime_untranslated_region","frame_shift_del","frame_shift_ins","in_frame_del","missense","nonsense","nonstop","splice_site","splice_site_del","splice_site_ins","in_frame_ins"); 
             ###### Keep RNA??
@@ -65,13 +67,15 @@ open my $all, '>', join("/",$outdir,join("",$outpre,".tsv"));
 open my $chr, '>', join("/",$outdir,join("",$outpre,".chr.tsv"));
 open my $trans, '>', join("/",$outdir,join("",$outpre,".chr.no_error.tsv"));
 open my $cov, '>', join("/",$outdir,join("",$outpre,".chr.no_error.coverage.tsv"));
-open my $coding, '>', join("/",$outdir,join("",$outpre,".chr.no_error.coverage.coding.tsv"));
+open my $tier_file, '>', join("/",$outdir,join("",$outpre,".chr.no_error.coverage.tier1.tsv"));
+open my $coding, '>', join("/",$outdir,join("",$outpre,".chr.no_error.coverage.tier1.coding.tsv"));
 
 ## Print headers
 print $all join("\t", @header), "sample\n";
 print $chr join("\t", @header), "sample\n";
 print $trans join("\t", @header), "sample\n";
 print $cov join("\t", @header), "sample\n";
+print $tier_file join("\t", @header), "sample\n";
 print $coding join("\t", @header), "sample\n";
 
 ## Iterate through each file in the directory
@@ -115,14 +119,23 @@ foreach my $s (@samples) {
                     }
                     print $cov "$s\n";
 
+                    ## Check if the variant is tier1
+                    my $tier = $row->{tier};
+                    if( grep(/$tier/, @tiers) ) {
+                        foreach my $h (@header) { 
+                            print $tier_file "$row->{$h}\t";
+                        }
+                        print $tier_file "$s\n";
+                    #}
+
                     ## Check if the trv type indicates the variant should be kept
                     my $trv = $row->{trv_type};
                     if( grep(/$trv/, @trv_keep) ) {    
                         foreach my $h (@header) { 
                             print $coding "$row->{$h}\t";
                         }
-                    print $coding "$s\n";
-                    }
+                        print $coding "$s\n";
+                    }}
                 }
             }
         }
@@ -133,4 +146,5 @@ close $all;
 close $chr;
 close $trans;
 close $cov;
-close $all;
+close $tier_file;
+close $coding;
