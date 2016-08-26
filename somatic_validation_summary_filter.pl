@@ -38,11 +38,15 @@ open my $sample_fh, '<', $sample_list or die "Sample list ($sample_list) not fou
 chomp(my @samples = <$sample_fh>);
 close $sample_fh;
 
-######### Define variables to keep
+######### Define variables to keep variants
 ## Define chromosomes to keep
 my @chr_keep = (1..22,"X","Y");
 ## Define transcript errors to allow
 my @trans_keep = ("no_errors","-");
+## Define minimum coverage, variant count and VAF
+my $min_cov = 20;
+my $min_var = 5;
+my $min_vaf = 5;
 ## Define trv types to include
 my @trv_keep = ("3_prime_untranslated_region","5_prime_untranslated_region","frame_shift_del","frame_shift_ins","in_frame_del","missense","nonsense","nonstop","splice_site","splice_site_del","splice_site_ins","in_frame_ins"); 
             ###### Keep RNA??
@@ -60,12 +64,14 @@ close $header_fh;
 open my $all, '>', join("/",$outdir,join("",$outpre,".tsv"));
 open my $chr, '>', join("/",$outdir,join("",$outpre,".chr.tsv"));
 open my $trans, '>', join("/",$outdir,join("",$outpre,".chr.no_error.tsv"));
-open my $coding, '>', join("/",$outdir,join("",$outpre,".chr.no_error.coding.tsv"));
+open my $cov, '>', join("/",$outdir,join("",$outpre,".chr.no_error.coverage.tsv"));
+open my $coding, '>', join("/",$outdir,join("",$outpre,".chr.no_error.coverage.coding.tsv"));
 
 ## Print headers
 print $all join("\t", @header), "sample\n";
 print $chr join("\t", @header), "sample\n";
 print $trans join("\t", @header), "sample\n";
+print $cov join("\t", @header), "sample\n";
 print $coding join("\t", @header), "sample\n";
 
 ## Iterate through each file in the directory
@@ -101,6 +107,17 @@ foreach my $s (@samples) {
             print $trans "$s\n";
         }
 
+        ## Remove variants with insufficient coverage or VAF
+        my $cov_tot = $row->{val_Tumor_ref_count} + $row->{val_Tumor_var_count};
+        my $var_cov = $row->{val_Tumor_var_count};
+        my $vaf = $row->{val_Tumor_VAF};
+        if($cov_tot >= $min_cov && $var_cov >= $min_var && $vaf >= $min_vaf) {
+            foreach my $h (@header) {
+                print $cov "$row->{$h}\t";
+            }
+            print $cov "$s\n";
+        }
+
         ## Check if the trv type indicates the variant should be kept
         my $trv = $row->{trv_type};
         if( grep(/$trv/, @trv_keep) ) {    
@@ -115,4 +132,5 @@ foreach my $s (@samples) {
 close $all;
 close $chr;
 close $trans;
+close $cov;
 close $all;
