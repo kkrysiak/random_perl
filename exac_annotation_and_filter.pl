@@ -18,7 +18,7 @@ my $usage=<<INFO;
         exac_annotation_and_filter.pl --variant_file=/gscmnt/gc2547/mardiswilsonlab/kkrysiak/lymphoma/variant_files/All_Variants.tsv --af_cutoff=0.001 --outfile_prefix='testing'
     
     Requires
-        --variant_file      Variant file with first 5 col (chr,start,stop,ref,var). Maintains original columns with ExAC af column appended to the end of output files.
+        --variant_file      1-based variant file with first 5 col (chr,start,stop,ref,var) and a header row. Maintains original columns with ExAC af column appended to the end of output files.
 
     Optional parameters
         --af_cutoff         default=0.001       Variants with adjusted allele frequency <= set value are printed to PASS file. Variants with adjusted allele frequency > set 
@@ -39,7 +39,7 @@ open my $out_pass, '>', join("",$prefix,".pass.tsv");
 open my $out_fail, '>', join("",$prefix,".fail.tsv");
 
 ## Use user-defined or set default exac allele frequency cutoff to separate the file
-print "Using exac adjusted allele frequency cutoff: $af_cutoff\n";
+print "\nUsing exac adjusted allele frequency cutoff: $af_cutoff\n";
 
 ## Create a hashes of passed and failed variants
 my %fail = ();
@@ -216,15 +216,8 @@ $prog = "";
 ## Read in variant file
 while(my $line = <$fh>) {
     chomp($line);
-    ## Print the first line of the file + ExAc column heading to output file
-    if($header eq "") {
-        $header = join("\t",$line,"ExAC_adj_AF");
-        print $out_pass "$header\n";
-        print $out_fail "$header\n";
-        print "\nPrinting output files\n";
-    }
     ## Check that the first character is a valid chromosome, otherwise print to the removed output file
-    elsif($line =~ /^([0-9]|X|Y|M|GL)/){
+    if($line =~ /^([0-9]|X|Y|M|GL)/){
         ## Create an array with the different columns of the line
         my @vars = split("\t", $line);
         ## Check that the chromosome, start, reference base, variant base are formatted as expected
@@ -251,20 +244,32 @@ while(my $line = <$fh>) {
         } else {
             if($line =~ /^chr/) {
                 ## Print warning
-                die "File format not supported. Please remove chr prefix from variant file.\n";
+                die "ERROR: variant file format not supported. Please remove chr prefix from variant file. Exiting.\n";
             } else {
                 ## Print skipped lines
-                print "Variant formatting problem, excluding variant:\n$line\n";
+                print "WARNING: Variant formatting problem, excluding variant:\n$line\n";
                 $excluded++;
             }
         }
+    ## If the first line doesn't match a chromosome, check if the first line is a header
+    } elsif($header eq "") {
+        $header = join("\t",$line,"ExAC_adj_AF");
+        ## Check if the first line is actually a header
+        if($line =~ /^([1-22]|X|Y|MT|GL\S+)/) {
+            die "\nERROR: Header expected but chromosome name in first line/column. Check input variant file formatting.\n"
+        } else {
+            print $out_pass "$header\n";
+            print $out_fail "$header\n";
+            print "\nPrinting output files\n";
+        }
+    ## If the line doesn't start with a chromosome designation and not the first line of the file, check if chromosomes are prefaced with chr
     } else {
         if($line =~ /^chr/) {
             ## Print warning
-            die "File format not supported. Please remove chr prefix from variant file.\n";
+            die "ERROR: variant file format not supported. Please remove chr prefix from variant file. Exiting.\n";
         } else {
             ## Print skipped lines
-            die "Variant formatting problem:\n$line\n";
+            die "ERROR: unexpected variant formatting. Only human chromosomes supported (1-22|X|Y|MT|GL*)\n$line\nExiting\n";
         }
     }
 }
