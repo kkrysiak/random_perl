@@ -16,12 +16,12 @@ my $usage=<<INFO;
     Gather all variants in a Lymphoma subdirectory for filtering.
 
     Example usage:
-        perl somatic_validation_summary_filter.pl --directory=/gscmnt/gc2547/mardiswilsonlab/kkrysiak/lymphoma_group2/collect_variants/ --sample_list_file=/gscmnt/gc2547/mardiswilsonlab/kkrysiak/lymphoma_group2/collect_variants/sample_list_f49450ad26db40e1b065b7a0a79d85e2.txt --header_file=/gscmnt/gc2547/mardiswilsonlab/kkrysiak/lymphoma_group2/collect_variants/header.txt --output_dir=/gscmnt/gc2547/mardiswilsonlab/kkrysiak/lymphoma_group2/collect_variants/ --output_prefix=all_variants
+        perl somatic_validation_summary_filter.pl --directory=/gscmnt/gc2547/griffithlab/kkrysiak/lymphoma_group2/collect_variants/ --sample_list_file=/gscmnt/gc2547/griffithlab/kkrysiak/lymphoma_group2/collect_variants/sample_list_f49450ad26db40e1b065b7a0a79d85e2.txt --header_file=/gscmnt/gc2547/griffithlab/kkrysiak/lymphoma_group2/collect_variants/header.txt --output_dir=/gscmnt/gc2547/griffithlab/kkrysiak/lymphoma_group2/collect_variants/ --output_prefix=all_variants
 
 INFO
 
 ## Define the top level directory where the summarized somatic validation results have been placed
-#my $dirname = "/gscmnt/gc2547/mardiswilsonlab/kkrysiak/lymphoma_group2/collect_variants/";
+#my $dirname = "/gscmnt/gc2547/griffithlab/kkrysiak/lymphoma_group2/collect_variants/";
 #opendir(DIR, $dirname) or die "Not able to open $dirname $!";
 
 ## Set up to parse TSV files
@@ -33,7 +33,7 @@ my $tsv = Text::CSV_XS->new ({
 });
 
 ## Get the list of samples to include
-#open my $sample_list, '<', '/gscmnt/gc2547/mardiswilsonlab/kkrysiak/lymphoma_group2/collect_variants/sample_list_f49450ad26db40e1b065b7a0a79d85e2.txt';
+#open my $sample_list, '<', '/gscmnt/gc2547/griffithlab/kkrysiak/lymphoma_group2/collect_variants/sample_list_f49450ad26db40e1b065b7a0a79d85e2.txt';
 open my $sample_fh, '<', $sample_list or die "Sample list ($sample_list) not found.\n";
 chomp(my @samples = <$sample_fh>);
 close $sample_fh;
@@ -55,7 +55,7 @@ my @trv_keep = ("3_prime_untranslated_region","5_prime_untranslated_region","fra
 
 ######### Filter
 ## Get the variant file header into an array
-#open my $header_file, '<', "/gscmnt/gc2547/mardiswilsonlab/kkrysiak/lymphoma_group2/collect_variants/header.txt";
+#open my $header_file, '<', "/gscmnt/gc2547/griffithlab/kkrysiak/lymphoma_group2/collect_variants/header.txt";
 open my $header_fh, '<', $header_file or die "Header file ($header_file) not found.\n";
 my $header_line = <$header_fh>;
 chomp($header_line);
@@ -81,7 +81,7 @@ print $coding join("\t", @header), "sample\n";
 ## Iterate through each file in the directory
 foreach my $s (@samples) {
     my $file = join("",$dirname,$s,'/snvs.indels.annotated');
-    #my $file = '/gscmnt/gc2547/mardiswilsonlab/kkrysiak/lymphoma_group2/collect_variants/H_ML-1017096/snvs.indels.annotated';
+    #my $file = '/gscmnt/gc2547/griffithlab/kkrysiak/lymphoma_group2/collect_variants/H_ML-1017096/snvs.indels.annotated';
     open my $io, "<", $file or die "$file: $!";
  
     ## Pulls file in using column names as the key
