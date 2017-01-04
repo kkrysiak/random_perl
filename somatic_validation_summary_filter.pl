@@ -71,12 +71,12 @@ open my $tier_file, '>', join("/",$outdir,join("",$outpre,".chr.no_error.coverag
 open my $coding, '>', join("/",$outdir,join("",$outpre,".chr.no_error.coverage.tier1.coding.tsv"));
 
 ## Print headers
-print $all join("\t", @header), "sample\n";
-print $chr join("\t", @header), "sample\n";
-print $trans join("\t", @header), "sample\n";
-print $cov join("\t", @header), "sample\n";
-print $tier_file join("\t", @header), "sample\n";
-print $coding join("\t", @header), "sample\n";
+print $all join("\t", @header), "\tsample\n";
+print $chr join("\t", @header), "\tsample\n";
+print $trans join("\t", @header), "\tsample\n";
+print $cov join("\t", @header), "\tsample\n";
+print $tier_file join("\t", @header), "\tsample\n";
+print $coding join("\t", @header), "\tsample\n";
 
 ## Iterate through each file in the directory
 foreach my $s (@samples) {
