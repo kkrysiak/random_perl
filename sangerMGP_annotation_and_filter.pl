@@ -4,12 +4,12 @@ use warnings;
 
 #### Open relavent input files
 ## Our variant file
-open(VARIANTS, "</gscmnt/gc2547/mardiswilsonlab/kkrysiak/Stat1/maf_filtering/Table_S1.MAF_noquote.tsv") or die "Variant file not found";
-#open(VARIANTS, "</gscmnt/gc2547/mardiswilsonlab/kkrysiak/Stat1/maf_filtering/test.tsv") or die "Test file not found";
+open(VARIANTS, "</gscmnt/gc2547/griffithlab/kkrysiak/Stat1/maf_filtering/Table_S1.MAF_noquote.tsv") or die "Variant file not found";
+#open(VARIANTS, "</gscmnt/gc2547/griffithlab/kkrysiak/Stat1/maf_filtering/test.tsv") or die "Test file not found";
 
 ## gz VCF file containing all MGP variants
-open(MGP_SNP, "gunzip -c /gscmnt/gc2547/mardiswilsonlab/kkrysiak/sanger_MGP/mgp.v2.snps.annot.reformat.vcf.gz | ") or die "Can't open ExAc file";
-open(MGP_INDEL, "gunzip -c /gscmnt/gc2547/mardiswilsonlab/kkrysiak/sanger_MGP/mgp.v2.indels.annot.reformat.vcf.gz | ") or die "Can't open ExAc file";
+open(MGP_SNP, "gunzip -c /gscmnt/gc2547/griffithlab/kkrysiak/sanger_MGP/mgp.v2.snps.annot.reformat.vcf.gz | ") or die "Can't open ExAc file";
+open(MGP_INDEL, "gunzip -c /gscmnt/gc2547/griffithlab/kkrysiak/sanger_MGP/mgp.v2.indels.annot.reformat.vcf.gz | ") or die "Can't open ExAc file";
 
 #### Create output files
 open(PASS, ">mgp_pass.tsv");

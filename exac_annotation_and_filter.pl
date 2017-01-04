@@ -15,7 +15,7 @@ my $usage=<<INFO;
     Perl script annotates variant file with ExAC adjusted allele frequencies (release 2.0, GRCh37)
 
     Example usage:
-        exac_annotation_and_filter.pl --variant_file=/gscmnt/gc2547/mardiswilsonlab/kkrysiak/lymphoma/variant_files/All_Variants.tsv --af_cutoff=0.001 --outfile_prefix='testing'
+        exac_annotation_and_filter.pl --variant_file=/gscmnt/gc2547/griffithlab/kkrysiak/lymphoma/variant_files/All_Variants.tsv --af_cutoff=0.001 --outfile_prefix='testing'
     
     Requires
         --variant_file      1-based variant file with first 5 col (chr,start,stop,ref,var) and a header row. Maintains original columns with ExAC af column appended to the end of output files.
@@ -32,7 +32,7 @@ INFO
 ## Our variant file
 open my $fh, '<', $filename or die "Variant file ($filename) not found.\n\n$usage\n";
 ## gz VCF file containing all ExAc variants
-open(EXAC, "gunzip -c /gscmnt/gc2547/mardiswilsonlab/kkrysiak/exac_release2/ExAC.r0.2.sites.vep.vcf.gz | ") or die "Can't open ExAc file.\n\n$usage\n";
+open(EXAC, "gunzip -c /gscmnt/gc2547/griffithlab/kkrysiak/exac_release2/ExAC.r0.2.sites.vep.vcf.gz | ") or die "Can't open ExAc file.\n\n$usage\n";
 
 #### Create output files
 open my $out_pass, '>', join("",$prefix,".pass.tsv");

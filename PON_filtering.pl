@@ -19,8 +19,8 @@ GetOptions ('snv_min_vaf=f'=>\$VAF, 'snv_min_readcount=i'=>\$readcount, 'snv_min
 
 my $usage=<<INFO;
     Example usage:
-        PON_filtering.pl --readcount_file=/gscmnt/gc2547/mardiswilsonlab/kkrysiak/lymphoma/variant_files/lym_normal_filter/lym_normal_readcounts.tsv 
-        --outfile_prefix='test' --variant_file=/gscmnt/gc2547/mardiswilsonlab/kkrysiak/lymphoma/variant_files/All_Variants.tsv --snv_min_vaf=5 
+        PON_filtering.pl --readcount_file=/gscmnt/gc2547/griffithlab/kkrysiak/lymphoma/variant_files/lym_normal_filter/lym_normal_readcounts.tsv 
+        --outfile_prefix='test' --variant_file=/gscmnt/gc2547/griffithlab/kkrysiak/lymphoma/variant_files/All_Variants.tsv --snv_min_vaf=5 
         --snv_min_readcount=3 --snv_min_recurrence=5 --indel_min_vaf=2
 
     Requires
