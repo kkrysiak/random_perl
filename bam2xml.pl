@@ -33,10 +33,11 @@ my $count = 0;
 #create sample track hash for xml file, add xml header
 foreach my $k ( keys %sample_hash ) {
     chomp($k);
-    my $out_file = "$k/$k" . '.xml';
+    my $out_file = "$k" . '.xml';
 
     if ($bed_file) {
-        $bed_dir = $bed_file . "$k/$k" . '.bed';
+        $bed_dir = $bed_file . "$k" . '.bed';
+        print "$bed_dir\n";
         my $bed_result = bed_track( $bed_dir, $k );
         push( @bed_dirs, "$k\t$bed_result" );
     }
@@ -77,7 +78,7 @@ foreach my $k ( keys %sample_hash ) {
 #print track xml code to corresponding sample file
 foreach my $panel_out ( keys %id_sample ) {
 
-    my $out_file = "$panel_out/$panel_out" . '.xml';
+    my $out_file = "$panel_out" . '.xml';
     open( OUT, '>>', $out_file );
     foreach my $k ( keys %{ $id_sample{$panel_out} } ) {
         foreach my $sample (@samples) {
@@ -97,7 +98,7 @@ if ( $bed_pass > 0 ) {
         chomp($bed_print);
         my @data = split( "\t", $bed_print );
 
-        my $out_file = "$data[0]/$data[0]" . '.xml';
+        my $out_file = "$data[0]" . '.xml';
         open( OUT, '>>', $out_file );
         print OUT "\n\t$data[1]";
         print OUT
@@ -114,7 +115,7 @@ qq(\n\t<PanelLayout dividerFractions="0.006550218340611353,0.22489082969432314,0
 }
 elsif ( $bed_pass == 0 ) {
     foreach my $sa (@samples) {
-        my $out = "$sa/$sa" . '.xml';
+        my $out = "$sa" . '.xml';
         open( OUT, '>>', $out );
         print OUT
 qq(\n\t<PanelLayout dividerFractions="0.006550218340611353,0.22489082969432314,0.4497816593886463,0.6746724890829694,0.8995633187772926"/>
@@ -154,7 +155,7 @@ qq( showReference="false" snpThreshold="0.2" sortable="true" visible="true">
                  <DataRange baseline="0.0" drawBaseline="false" flipAxis="false" maximum="160.0" minimum="0.0" type="LINEAR"/>
              </Track>
              <Track altColor="0,0,178" autoScale="false" color="0,0,178" displayMode="EXPANDED" featureVisibilityWindow="-1" fontSize="10" );
-    my $print4 = "id=\"$bam\" name=\"$sample     $bam_ident     $id\"";
+    my $print4 = "id=\"$bam\" name=\"$sample     $id     $bam_ident\"";
     my $print5 = qq( showSpliceJunctions="false" sortable="true" visible="true">
                 <RenderOptions colorByTag="" colorOption="READ_STRAND" flagUnmappedPairs="false" groupByTag="" maxInsertSize="1000" minInsertSize="50" shadeBasesOption="QUALITY" shadeCenters="true" showAllBases="false" sortByTag=""/>
             </Track>);
