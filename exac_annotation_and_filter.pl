@@ -190,10 +190,6 @@ while(my $line = <EXAC>){  ## read single line from the file
                 my @AC_adj = split(",",$info_hash{'AC_Adj'});
                 my $AN = $info_hash{'AN'};
                 my $AN_adj = $info_hash{'AN_Adj'};
-#                $AC[$i] =~ s/AC=//;
-#                $AC_adj[$i] =~ s/AC_Adj=//;
-#                $AN =~ s/AN=//;
-#                $AN_adj =~ s/AN_Adj=//;
                 ## Change the allele count to a number
                 $AC_adj[$i] = sprintf("%.2f",$AC_adj[$i]);
                 ## Create an adjusted allele frequency based on the adjusted allele counts as a decimal (not scientific notation)
