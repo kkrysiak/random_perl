@@ -180,15 +180,20 @@ while(my $line = <EXAC>){  ## read single line from the file
                 my $AF_adj = 0;
                 ## Collect desired columns (adjusted allele count, adjusted total count) from INFO field
                 my @info = split(";",$vars[7]);
+                my %info_hash;
+                foreach my $item(@info) {
+                    my ($a,$c) = split(/=/, $item);
+                    $info_hash{$a} = $c;
+                }
                 ## Set up to output allele counts and numbers
-                my @AC = split(",",$info[0]);
-                my @AC_adj = split(",",$info[3]);
-                my $AN = $info[12];
-                my $AN_adj = $info[15];
-                $AC[$i] =~ s/AC=//;
-                $AC_adj[$i] =~ s/AC_Adj=//;
-                $AN =~ s/AN=//;
-                $AN_adj =~ s/AN_Adj=//;
+                my @AC = split(",",$info_hash{'AC'});
+                my @AC_adj = split(",",$info_hash{'AC_Adj'});
+                my $AN = $info_hash{'AN'};
+                my $AN_adj = $info_hash{'AN_Adj'};
+#                $AC[$i] =~ s/AC=//;
+#                $AC_adj[$i] =~ s/AC_Adj=//;
+#                $AN =~ s/AN=//;
+#                $AN_adj =~ s/AN_Adj=//;
                 ## Change the allele count to a number
                 $AC_adj[$i] = sprintf("%.2f",$AC_adj[$i]);
                 ## Create an adjusted allele frequency based on the adjusted allele counts as a decimal (not scientific notation)
