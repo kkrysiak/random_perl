@@ -55,8 +55,9 @@ open(EXAC, "gunzip -c $exac_fh | ") or die "Can't open ExAC file $exac_fh.\n\n$u
 open my $out_pass, '>', join("",$prefix,".pass.tsv");
 open my $out_fail, '>', join("",$prefix,".fail.tsv");
 
-## Use user-defined or set default exac allele frequency cutoff to separate the file
-print "\nUsing exac adjusted allele frequency cutoff: $af_cutoff\n";
+## Use user-defined or set default exac version and allele frequency cutoff to separate the file
+print "\nUsing ExAC version: $ver\n";
+print "\nUsing ExAC adjusted allele frequency cutoff: $af_cutoff\n";
 
 ## Create a hashes of passed and failed variants
 my %fail = ();
