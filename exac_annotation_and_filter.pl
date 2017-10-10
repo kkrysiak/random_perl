@@ -6,16 +6,17 @@ use Getopt::Long;
 my $af_cutoff = 0.001;
 my $filename = '';
 my $prefix = 'exac';
+my $ver = 0.2;
 
 
-GetOptions ('variant_file=s'=>\$filename, 'af_cutoff=f'=>\$af_cutoff, 'outfile_prefix=s'=>\$prefix);
+GetOptions ('variant_file=s'=>\$filename, 'af_cutoff=f'=>\$af_cutoff, 'outfile_prefix=s'=>\$prefix, 'exac_version=s'=>\$ver);
 
 
 my $usage=<<INFO;
-    Perl script annotates variant file with ExAC adjusted allele frequencies (release 2.0, GRCh37)
+    Perl script annotates variant file with ExAC adjusted allele frequencies (GRCh37)
 
     Example usage:
-        exac_annotation_and_filter.pl --variant_file=/gscmnt/gc2547/griffithlab/kkrysiak/lymphoma/variant_files/All_Variants.tsv --af_cutoff=0.001 --outfile_prefix='testing'
+        perl exac_annotation_and_filter.pl --variant_file=/gscmnt/gc2547/griffithlab/kkrysiak/lymphoma/variant_files/All_Variants.tsv --af_cutoff=0.001 --outfile_prefix='testing'
     
     Requires
         --variant_file      1-based variant file with first 5 col (chr,start,stop,ref,var) and a header row. Maintains original columns with ExAC af column appended to the end of output files.
@@ -24,6 +25,7 @@ my $usage=<<INFO;
         --af_cutoff         default=0.001       Variants with adjusted allele frequency <= set value are printed to PASS file. Variants with adjusted allele frequency > set 
                                                 value are printed to FAIL file.
         --outfile_prefix    default="exac"      File name prefix for output files.
+        --exac_version      default="0.2"       Defines the ExAC version to use. Default = 0.2. Options include 0.2, 0.3, 0.3-nonTCGA, 0.3.1 and 0.3.1-nonTCGA.
 
 INFO
 
@@ -32,14 +34,30 @@ INFO
 ## Our variant file
 open my $fh, '<', $filename or die "Variant file ($filename) not found.\n\n$usage\n";
 ## gz VCF file containing all ExAc variants
-open(EXAC, "gunzip -c /gscmnt/gc2547/griffithlab/kkrysiak/exac_release2/ExAC.r0.2.sites.vep.vcf.gz | ") or die "Can't open ExAc file.\n\n$usage\n";
+my $exac_fh = ''; 
+if($ver eq "0.2") {
+    $exac_fh = '/gscmnt/gc2547/griffithlab/kkrysiak/exac_release2/ExAC.r0.2.sites.vep.vcf.gz';
+} elsif($ver eq "0.3") {
+    $exac_fh = '/gscmnt/gc2547/griffithlab/kkrysiak/exac_release3/ExAC.r0.3.sites.vep.vcf.gz';
+} elsif($ver eq "0.3-nonTCGA") {
+    $exac_fh = '/gscmnt/gc2547/griffithlab/kkrysiak/exac_release3/ExAC.r0.3.nonTCGA.sites.vep.vcf.gz';
+} elsif($ver eq "0.3.1") {
+    $exac_fh = '/gscmnt/gc2547/griffithlab/kkrysiak/exac_release3/ExAC.r0.3.1.sites.vep.vcf.gz';
+} elsif($ver eq "0.3.1-nonTCGA") {
+    $exac_fh = '/gscmnt/gc2547/griffithlab/kkrysiak/exac_release3/ExAC_nonTCGA.r0.3.1.sites.vep.vcf.gz';
+} else {
+    die "Please choose a valid ExAC version option. Options include 0.2, 0.3, 0.3-nonTCGA, 0.3.1 and 0.3.1-nonTCGA.";
+}
+
+open(EXAC, "gunzip -c $exac_fh | ") or die "Can't open ExAC file $exac_fh.\n\n$usage\n";
 
 #### Create output files
 open my $out_pass, '>', join("",$prefix,".pass.tsv");
 open my $out_fail, '>', join("",$prefix,".fail.tsv");
 
-## Use user-defined or set default exac allele frequency cutoff to separate the file
-print "\nUsing exac adjusted allele frequency cutoff: $af_cutoff\n";
+## Use user-defined or set default exac version and allele frequency cutoff to separate the file
+print "\nUsing ExAC version: $ver ($exac_fh)\n";
+print "\nUsing ExAC adjusted allele frequency cutoff: $af_cutoff\n";
 
 ## Create a hashes of passed and failed variants
 my %fail = ();
@@ -163,15 +181,16 @@ while(my $line = <EXAC>){  ## read single line from the file
                 my $AF_adj = 0;
                 ## Collect desired columns (adjusted allele count, adjusted total count) from INFO field
                 my @info = split(";",$vars[7]);
+                my %info_hash;
+                foreach my $item(@info) {
+                    my ($a,$c) = split(/=/, $item);
+                    $info_hash{$a} = $c;
+                }
                 ## Set up to output allele counts and numbers
-                my @AC = split(",",$info[0]);
-                my @AC_adj = split(",",$info[3]);
-                my $AN = $info[12];
-                my $AN_adj = $info[15];
-                $AC[$i] =~ s/AC=//;
-                $AC_adj[$i] =~ s/AC_Adj=//;
-                $AN =~ s/AN=//;
-                $AN_adj =~ s/AN_Adj=//;
+                my @AC = split(",",$info_hash{'AC'});
+                my @AC_adj = split(",",$info_hash{'AC_Adj'});
+                my $AN = $info_hash{'AN'};
+                my $AN_adj = $info_hash{'AN_Adj'};
                 ## Change the allele count to a number
                 $AC_adj[$i] = sprintf("%.2f",$AC_adj[$i]);
                 ## Create an adjusted allele frequency based on the adjusted allele counts as a decimal (not scientific notation)
